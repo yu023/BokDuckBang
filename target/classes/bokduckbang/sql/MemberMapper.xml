@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MemberMapper">
+  <select id="selectId" resultType="int">
+    select 1
+  </select>
+  <insert id="insertMember" parameterType="bokduckbang.member.MemberLessor">
+   	  INSERT INTO member
+   	  (
+   	  	member_email,
+   	  	member_type
+   	  )
+   	  values(
+   	  	#{member_email},
+   	  	false
+   	  )
+  </insert>
+  <insert id="insertLessor" parameterType="bokduckbang.member.MemberLessor">
+   	  INSERT INTO member_lessor
+   	  (
+   	  	member_email,
+   	  	member_password,
+   	  	member_business_license,
+   	  	member_business_name,
+   	  	member_ceo_name,
+   	  	member_business_phn_num
+   	  )
+   	  values(
+   	  	#{member_email}
+   	  	,#{member_password}
+   	  	,#{member_business_license}
+   	  	,#{member_business_name}
+   	  	,#{member_ceo_name}
+   	  	,#{member_business_phn_num}
+   	  )
+  </insert>
+  <insert id="insertLessee" parameterType="bokduckbang.member.MemberLessee">
+   	  INSERT INTO member_lessee
+   	  (
+   	  	member_email
+   	  	,member_password
+   	  	,member_phone
+		,member_name
+		<if test="member_like_room_type != null">
+			,member_like_room_type
+		</if>
+		<if test="member_dest_loc != null">
+			,member_dest_loc
+		</if>
+		<if test="member_like_area != null">
+			,member_like_area
+		</if>
+		<if test="member_like_room_num != null">
+			,member_like_room_num
+		</if>
+   	  )
+   	  values(
+   	  	#{member_email}
+   	  	,#{member_password}
+   	  	,#{member_phone}
+   	  	,#{member_name}
+   	  	<if test="member_like_room_type != null">
+   	  		,#{member_like_room_type}
+   	  	</if>
+   	  	<if test="member_dest_loc != null">
+   	  		,#{member_dest_loc}
+   	  	</if>
+   	  	<if test="member_like_area != null">
+   	  		,#{member_like_area}
+   	  	</if>
+   	  	<if test="member_like_room_num != null">
+   	  		,#{member_like_room_num}
+   	  	</if>
+   	  )
+  </insert>
+  <select id="checkId" parameterType="java.util.HashMap" resultType="object">
+	  	select member_email from member_lessor where member_email = #{id}
+		union select member_email from member_lessee  where member_email = #{id};
+  </select>
+  <select id="checkMember" parameterType="bokduckbang.member.CheckMember" resultType="bokduckbang.member.Member">
+  	select
+  	member_email
+	,member_password
+	,member_phone
+	,member_name
+	,member_like_room_type
+	,member_dest_loc
+	,member_like_area
+	,member_like_room_num
+	from member_lessee
+	<where>
+		<if test="member_email != null">
+			AND
+			member_email = #{member_email}
+		</if>
+		<if test="member_password != null">
+			AND
+			member_password = #{member_password}
+		</if>
+	</where>
+  </select>
+</mapper>

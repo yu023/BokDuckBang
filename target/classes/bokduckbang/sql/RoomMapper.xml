@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="RoomMapper">
+<select id="abc" resultType="object">
+	select * from test
+	where tester = 10
+  </select>
+  <insert id="roomInsert" parameterType="bokduckbang.room.Room">
+   	  INSERT INTO room
+   	  (
+   	  	room_selling_type
+   	  	,room_address
+   	  	,room_lat_lng
+   	  	,room_lat
+   	  	,room_lng
+   	  	,room_title
+   	  	,room_content
+   	  	,room_type
+   	
+   	  	<if test="room_money_lease != null">
+	        ,room_money_lease
+	        ,room_lease_num
+	    </if>
+   	
+   	  	<if test="room_money_deposit != null">
+	        ,room_money_deposit
+	        ,room_money_monthly_rent
+	        ,room_deposit_num
+	        ,room_monthly_rent_num
+	    </if>
+	    
+   	  	,room_service
+   	  	,room_service_charge
+   	  	,room_park_charge
+   	  	,room_width
+   	  	,room_keywords
+   	  	,room_floor_str
+   	  	,room_total_floor
+   	  	,room_elevator
+   	  	,room_heating
+   	  	,room_balcony
+   	  	,room_loan
+   	  	,room_move_in_date
+   	  	,room_option
+   	  	,room_author_email
+   	
+   	  	<if test="room_img_url != null">
+	        ,room_img_url
+	    </if>
+   	  	<if test="room_complex_id != ''">
+	        ,room_complex_id
+	    </if>
+   	  	<if test="room_dong != ''">
+	        ,room_dong
+	    </if>
+   	  	<if test="room_ho != ''">
+	        ,room_ho
+	    </if>
+   	  	
+   	  )
+   	  
+   	  values(
+   	  	#{room_selling_type}
+   	  	,#{room_address}
+   	  	,point(#{room_lat},#{room_lng})
+   	  	,#{room_lat}
+   	  	,#{room_lng}
+   	  	,#{room_title}
+   	  	,#{room_content}
+   	  	,#{room_type}
+   	  	
+   	  	<if test="room_money_lease != null">
+	        ,#{room_money_lease}
+	        ,#{room_lease_num}
+	    </if>
+   	
+   	  	<if test="room_money_deposit != null">
+	        ,#{room_money_deposit}
+	        ,#{room_money_monthly_rent}
+	        ,#{room_deposit_num}
+	        ,#{room_monthly_rent_num}
+	    </if>
+	    
+   	  	,#{room_service}
+   	  	,#{room_service_charge}
+   	  	,#{room_park_charge}
+   	  	,#{room_width}
+   	  	,#{room_keywords}
+   	  	,#{room_floor_str}
+   	  	,#{room_total_floor}
+   	  	,#{room_elevator}
+   	  	,#{room_heating}
+   	  	,#{room_balcony}
+   	  	,#{room_loan}
+   	  	,#{room_move_in_date}
+   	  	,#{room_option}
+   	  	,#{room_author_email}
+   	  	
+   	  	<if test="room_img_url != null">
+	        ,#{room_img_url}
+	    </if>
+   	  	<if test="room_complex_id != ''">
+	        ,#{room_complex_id}
+	    </if>
+   	  	<if test="room_dong != ''">
+	        ,#{room_dong}
+	    </if>
+   	  	<if test="room_ho != ''">
+	        ,#{room_ho}
+	    </if>
+   	  )
+  </insert>
+  
+  <select id="dupChkRoom" parameterType="bokduckbang.room.Room" resultType="object">
+	select room_number
+	from room
+	<trim prefix="WHERE">
+		<if test="room_lat != ''">
+			room_lat = #{room_lat}
+	    </if>
+		<if test="room_lng != ''">
+			AND room_lng = #{room_lng}
+	    </if>
+		<if test="room_complex_id != ''">
+			AND room_complex_id = #{room_complex_id}
+	    </if>
+	  	<if test="room_dong != ''">
+	        AND room_dong = #{room_dong}
+	    </if>
+	  	<if test="room_ho != ''">
+	        AND room_ho = #{room_ho}
+	    </if>
+	  	<if test="room_floor_str != ''">
+	        AND room_floor_str = #{room_floor_str}
+	    </if>
+	  	<if test="room_total_floor != ''">
+	        AND room_total_floor = #{room_total_floor}
+	    </if>
+	</trim>
+  </select>
+  
+  <select id="SelectRoom" parameterType="java.util.HashMap" resultType="bokduckbang.room.Room">
+		SELECT room_number, room_lat, room_lng, room_selling_type, room_type, room_address, room_title, room_content
+		<if test="room_money_lease != ''">
+			, room_money_lease
+		</if>
+		<if test="room_money_deposit != ''">
+			, room_money_deposit
+		</if>
+		<if test="room_money_monthly_rent != ''">
+			, room_money_monthly_rent
+		</if>
+	  , room_service, room_service_charge, room_park_charge, room_width, room_keywords, room_img_url, room_floor_str, room_total_floor
+	  ,room_elevator, room_heating, room_balcony, room_loan, room_move_in_date, room_option, room_author_email
+	  ,room_create_date, room_status, room_likes, room_hits
+		FROM room
+		<where>
+			<if test="schFilterRoom or keywordSch">
+				AND
+				ST_Distance(
+					room_lat_lng,
+				    ST_GeomFromText(#{point})
+				) &lt;= #{distance}
+			</if>
+			<if test="schRoomNum">
+				AND
+				#{lat} = room_lat
+				AND #{lng} = room_lng
+			</if>
+			<if test="DetailRoomInfo">
+				AND
+				room_number = #{room_number}
+			</if>
+			<if test="select1">
+				AND
+				room_selling_type = '전세'
+			</if>
+			<if test="select2">
+				AND
+				room_selling_type = '월세'
+			</if>
+			<if test="keywordSch">
+				<foreach collection="list" item="item" open="AND room_keywords like " separator="AND room_keywords like ">
+				   #{item}
+				 </foreach>
+			</if>
+			<if test="minmaxLease">
+				<if test="minlease != null">
+					AND
+					room_lease_num &gt;= #{minlease}
+				</if>
+				<if test="maxlease != null">
+					AND
+					room_lease_num &lt;= #{maxlease}
+				</if>
+			</if>
+			<if test="minmaxRent">
+				<if test="mindeposit != null">
+					AND
+					room_deposit_num &gt;= #{mindeposit}
+				</if>
+				<if test="maxdeposit != null">
+					AND
+					room_deposit_num &lt;= #{maxdeposit}
+				</if>
+				<if test="minrent != null">
+					AND
+					room_monthly_rent_num &gt;= #{minrent}
+				</if>
+				<if test="maxrent != null">
+					AND
+					room_monthly_rent_num &lt;= #{maxrent}
+				</if>
+			</if>
+		</where>
+		order by 1=1
+		<if test="orderDistance">
+			,ST_Distance( room_lat_lng,
+			ST_GeomFromText(#{point}) )
+		</if>
+		<if test="rangeFilterRoom">
+			<if test="range3">
+				<if test="yearRange">
+					 ,room_lease_num desc
+				</if>
+				<if test="monthRange">
+					,room_deposit_num desc
+					,room_monthly_rent_num desc
+				</if>
+				<if test="allRange">
+					,room_lease_num desc
+					,room_deposit_num desc
+					,room_monthly_rent_num desc
+				</if>
+			</if>
+			<if test="range4">
+				<if test="yearRange">
+					 ,room_lease_num asc
+				</if>
+				<if test="monthRange">
+					,room_deposit_num asc
+					,room_monthly_rent_num asc
+				</if>
+				<if test="allRange">
+					,room_lease_num asc
+					,room_deposit_num asc
+					,room_monthly_rent_num asc
+				</if>
+			</if>
+			<if test="range1">
+				 ,room_likes desc
+			</if>
+			<if test="range2">
+				 ,room_create_date desc
+			</if>
+		</if>
+   </select>
+   
+	<select id="SelectMoney" parameterType="java.util.HashMap" resultType="bokduckbang.room.MinMax">
+		select 
+		<if test="max">
+			<if test="select1">max(room_lease_num) as maxLease</if>
+			<if test="select2">max(room_deposit_num) as maxDeposit,max(room_monthly_rent_num) as maxRent</if>
+		</if>
+		<if test="min">
+			<if test="select1">,min(room_lease_num) as minLease</if>
+			<if test="select2">,min(room_deposit_num) as minDeposit,min(room_monthly_rent_num) as minRent</if>
+		</if>
+		FROM room
+		<where>
+			<if test="schFilterRoom or keywordSch">
+				AND
+				ST_Distance(
+					room_lat_lng,
+				    ST_GeomFromText(#{point})
+				) &lt;= #{distance}
+			</if>
+			<if test="schRoomNum">
+				AND
+				#{lat} = room_lat
+				AND #{lng} = room_lng
+			</if>
+			<if test="DetailRoomInfo">
+				AND
+				room_number = #{room_number}
+			</if>
+			<if test="select1">
+				AND
+				room_selling_type = '전세'
+			</if>
+			<if test="select2">
+				AND
+				room_selling_type = '월세'
+			</if>
+			<if test="keywordSch">
+				<foreach collection="list" item="item" open="AND room_keywords like " separator="AND room_keywords like ">
+				   #{item}
+				 </foreach>
+			</if>
+		</where>
+		order by 1=1
+		<if test="orderDistance">
+			,ST_Distance( room_lat_lng,
+			ST_GeomFromText(#{point}) )
+		</if>
+		<if test="rangeFilterRoom">
+			<if test="range3">
+				<if test="yearRange">
+					 ,room_lease_num desc
+				</if>
+				<if test="monthRange">
+					,room_deposit_num desc
+					,room_monthly_rent_num desc
+				</if>
+				<if test="allRange">
+					,room_lease_num desc
+					,room_deposit_num desc
+					,room_monthly_rent_num desc
+				</if>
+			</if>
+			<if test="range4">
+				<if test="yearRange">
+					 ,room_lease_num asc
+				</if>
+				<if test="monthRange">
+					,room_deposit_num asc
+					,room_monthly_rent_num asc
+				</if>
+				<if test="allRange">
+					,room_lease_num asc
+					,room_deposit_num asc
+					,room_monthly_rent_num asc
+				</if>
+			</if>
+			<if test="range1">
+				 ,room_likes desc
+			</if>
+			<if test="range2">
+				 ,room_create_date desc
+			</if>
+		</if>
+   </select>
+  
+   
+</mapper>
