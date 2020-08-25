@@ -77,6 +77,7 @@ public class RoomService {
 		
 		JsonObject je = openJsonObject(myUrl, false);
 		JsonArray resultArr = parsingHsArr(je, "results");
+		System.out.println("resultArr : " + resultArr);
 		JsonObject result = (JsonObject) resultArr.get(0);
 		JsonObject geometry = (JsonObject) result.get("geometry");
 		
@@ -85,6 +86,8 @@ public class RoomService {
 		map.put("centerLat", location.get("lat").getAsDouble());
 		map.put("centerLng", location.get("lng").getAsDouble());
 		map.put("distance", 5.0);
+		
+		System.out.println("map : " +map);
 
 		return map;
 	}

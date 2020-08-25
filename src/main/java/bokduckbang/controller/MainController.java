@@ -1,5 +1,7 @@
 package bokduckbang.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import bokduckbang.member.CheckMember;
 import bokduckbang.member.MemberLessee;
 import bokduckbang.member.MemberLessor;
 import bokduckbang.room.Room;
+import bokduckbang.room.RoomFilterVo;
 import bokduckbang.service.CommonService;
 import bokduckbang.service.MemberService;
 import bokduckbang.service.RoomService;
@@ -126,7 +132,7 @@ public class MainController {
 	
 	@RequestMapping("/getCenterLatLng")
 	@ResponseBody
-	public List<Room> getCenterLatLng(Model model, @RequestBody HashMap<String, Object> map) {
+	public List<Room> getCenterLatLng(Model model, @RequestBody HashMap<String,Object> map) {
 		List<Room> resultList = roomService.getDistance(map);
 		model.addAttribute("rooms", resultList);
 		return resultList;
@@ -179,6 +185,20 @@ public class MainController {
 	@ResponseBody
 	public HashMap<String, Object> filter(@RequestBody HashMap<String, Object> filter) throws ParseException {
 		List<Room> rooms = roomService.filter(filter);
+		HashMap<String, Object> newhs = new HashMap<String, Object>();
+		if(rooms != null) {
+			newhs.put("result", rooms);
+			return newhs;
+		}else {
+			newhs.put("result", null);
+			return newhs;
+		}
+	}
+	
+	@RequestMapping("/search-room-get")
+	@ResponseBody
+	public HashMap<String, Object> srg(@RequestBody HashMap<String, Object> filter) throws ParseException {
+		List<Room> rooms = roomService.filter(filter);
 		if(rooms != null) {
 			filter.put("result", rooms);
 			return filter;
@@ -213,6 +233,17 @@ public class MainController {
 		return roomService.keywordRoomList(keyword);
 	}
 	
+	Gson gson = new Gson();
 	
+	public RoomFilterVo stringToGson(HashMap<String, String> filterHs) {
+		String url = "";
+		try {
+			url = URLDecoder.decode(filterHs.get("filter"), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 return gson.fromJson(url,RoomFilterVo.class);
+	}
 	
 }
