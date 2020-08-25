@@ -75,7 +75,7 @@ public class RoomFilterVo {
 	public Double getMinrent() {
 		return  Double.parseDouble(minrent);
 	}
-	public void setMinrent(String minrent) {
+	public void setMinrent(String minrent) { 
 		this.minrent = minrent;
 	}
 	public List<String> getRange() {

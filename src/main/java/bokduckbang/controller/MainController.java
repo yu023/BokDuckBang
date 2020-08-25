@@ -224,7 +224,7 @@ public class MainController {
 		keyword.remove("key");
 		keyword.put("points", points);
 		keyword.put("room", room);
-		return keyword;
+		return keyword; 
 	}
 	
 	@RequestMapping("/keyword")

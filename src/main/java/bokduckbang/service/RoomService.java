@@ -35,7 +35,7 @@ public class RoomService {
 	public static int minM = 0;
 	
 	public List<Room> getDistance(HashMap<String, Object> map) {
-		
+		 
 		HashMap<String, Object> pointMap = makePoint(map);
 		pointMap.put("schFilterRoom", true);
 		pointMap.put("orderDistance", true);
