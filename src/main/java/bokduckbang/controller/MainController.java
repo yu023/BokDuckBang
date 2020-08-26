@@ -1,10 +1,7 @@
 package bokduckbang.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
-
 import javax.servlet.http.HttpSession;
 
 import org.json.simple.parser.ParseException;
@@ -16,14 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-
 import bokduckbang.member.CheckMember;
 import bokduckbang.member.MemberLessee;
 import bokduckbang.member.MemberLessor;
 import bokduckbang.room.Room;
-import bokduckbang.room.RoomFilterVo;
 import bokduckbang.service.CommonService;
 import bokduckbang.service.MemberService;
 import bokduckbang.service.RoomService;
@@ -160,8 +153,10 @@ public class MainController {
 		model.addAttribute("roomUrl", roomService.roomImgUrl(room));
 		model.addAttribute("roomKeyword", roomService.roomKeyword(room));
 		model.addAttribute("roomOption", roomService.roomOption(room));
+		model.addAttribute("like", 10);
 		return "room-detail";
 	}
+	
 	
 	@RequestMapping("/room-position")
 	@ResponseBody
@@ -195,18 +190,6 @@ public class MainController {
 		}
 	}
 	
-	@RequestMapping("/search-room-get")
-	@ResponseBody
-	public HashMap<String, Object> srg(@RequestBody HashMap<String, Object> filter) throws ParseException {
-		List<Room> rooms = roomService.filter(filter);
-		if(rooms != null) {
-			filter.put("result", rooms);
-			return filter;
-		}else {
-			filter.put("result", null);
-			return filter;
-		}
-	}
 	
 	@RequestMapping("/minmax")
 	@ResponseBody
@@ -233,17 +216,5 @@ public class MainController {
 		return roomService.keywordRoomList(keyword);
 	}
 	
-	Gson gson = new Gson();
-	
-	public RoomFilterVo stringToGson(HashMap<String, String> filterHs) {
-		String url = "";
-		try {
-			url = URLDecoder.decode(filterHs.get("filter"), "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		 return gson.fromJson(url,RoomFilterVo.class);
-	}
 	
 }

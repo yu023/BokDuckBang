@@ -47,13 +47,13 @@ public class MinMax {
 		this.minRent = minRent;
 	}
 	public void setMulti(Integer max,Integer min) {
-		this.multi = (max-min)/2;
+		this.multi = (max+min)/2;
 	}
 	public Integer getMulti() {
 		return multi;
 	}
 	public void setRentMulti(Integer max,Integer min) {
-		this.rentMulti = (max-min)/2;
+		this.rentMulti = (max+min)/2;
 	}
 	public Integer getRentMulti() {
 		return rentMulti;

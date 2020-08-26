@@ -40,6 +40,9 @@ function initMap(){
 	var enterPrevNum = -1;
 	var clickPrevNum = -1;
 	
+	var uriParam = window.location.search;
+	var uriPathname = window.location.pathname;
+	
 	//지도 세팅
 	var map = new google.maps.Map(document.getElementById('map'), {
 	    zoom: 14,	
@@ -67,7 +70,7 @@ function initMap(){
 	    map: map,
 	  });
 
-	var initAjax = {
+	var roomFilters = {
 			room_selling_type : $("#sellingType li input[type='checkbox']:checked").prop("id"),
 		  	centerLat : marker.getPosition().lat(),
 			centerLng : marker.getPosition().lng(),
@@ -75,10 +78,26 @@ function initMap(){
 			keyword : KeywordArr,
 			range : range
 	  }
+
+	history.pushState(roomFilters, "BokDuckBang", uriPathname + "?" + encodeURIComponent(JSON.stringify(roomFilters)));
+	
+	if(uriParam != "" && typeof uriParam != "undefined" && uriParam != null){
+		var decodeURI = decodeURIComponent(uriParam);
+		decodeURI = decodeURI.substring(1,decodeURI.length);
+		roomFilters = JSON.parse(decodeURI);
+		myLatlng.lat = roomFilters.centerLat;
+		myLatlng.lng = roomFilters.centerLng;
+		reSetting(myLatlng);
+		var keywordStr = roomFilters.keyword;
+		if(keywordStr != "" && typeof keywordStr != "undefined" && keywordStr != null){
+			$("#keywordInput").val(roomFilters.keyword);
+			keywordSetting(roomFilters.keyword);
+		}
+	}
   
 	//첫 화면 function 뿌려주기
-	ajaxQuery(initAjax);
-	  
+	searchRoom(roomFilters);
+	modalBox();
 	  
 	/*****************************
 		click event
@@ -87,14 +106,16 @@ function initMap(){
 	
     //맵 클릭시 반경과 클러스터 재검색
   	map.addListener('click', function(mapsMouseEvent) {
+	  minMaxReset(roomFilters);
       markerReset();
-	  ajaxQuery(getLatLngFunc(mapsMouseEvent.latLng));
+	  searchRoom(resetPointsRoomFilters(mapsMouseEvent.latLng));
    	});
 
 	//반경 내부의 맵 클릭시 반경과 클러스터 재검색
   	circle.addListener('click', function(mapsMouseEvent) {
+	  minMaxReset(roomFilters);
       markerReset();
-	  ajaxQuery(getLatLngFunc(mapsMouseEvent.latLng));
+	  searchRoom(resetPointsRoomFilters(mapsMouseEvent.latLng));
   	 });
 
 	//탭 클릭시 반경과 클러스터 재검색
@@ -103,8 +124,9 @@ function initMap(){
 		dist = $(".option-box .tab-box li input[type='radio']:checked").val();
 
 		circle.setRadius(( dist * 1000 ) / 2);
-		initAjax.distance = dist;
-		ajaxQuery(getLatLngFunc(marker.getPosition()));
+		minMaxReset(roomFilters);
+		roomFilters.distance = dist;
+		searchRoom(resetPointsRoomFilters(marker.getPosition()));
 		map.fitBounds (circle.getBounds());
 
 	})
@@ -143,7 +165,7 @@ function initMap(){
 	
 
 	//좌표 구하여 반환해주기
-	function getLatLngFunc(latLng){
+	function resetPointsRoomFilters(latLng){
 
 	  var latLngList = latLng.toString();
 	  latLngList = latLngList.substring( 1, latLngList.length - 1 );
@@ -154,11 +176,11 @@ function initMap(){
 	  
 	  map.setCenter(latLng);
 	 
-	  initAjax.centerLat = latLngList[0];
-	  initAjax.centerLng = latLngList[1];
-	  initAjax.distance = dist;
-	 
-	  return initAjax;
+	  roomFilters.centerLat = latLngList[0];
+	  roomFilters.centerLng = latLngList[1];
+	  roomFilters.distance = dist;
+	  
+	  return roomFilters;
 	}
 	
 		
@@ -168,16 +190,9 @@ function initMap(){
 	************************************/
   
 	//좌표값 받아서 주변 매물 서치
-	function ajaxQuery(arr){
-		$.ajax({
-			url : "getCenterLatLng",
-			method : "post",
-			data : JSON.stringify(arr),
-			contentType : "application/json"
-		  }).done(function(msg){
-			  roomFilter(arr);
-			  minmax(arr);
-		  })
+	function searchRoom(roomFilters){
+		roomFilter(roomFilters);
+		minmax(roomFilters);
 	}
 	
 		  
@@ -186,13 +201,13 @@ function initMap(){
 	************************************/
 
 	//ajax로 받아온 주변 매물 데이터 결과값으로 클러스터 생성
-    function makeCluster(msg){
+    function makeCluster(result){
 
 		deleteMarkers();
 		var locations = [];
 		
-		for(var i = 0; i < msg.length; i++){
-			locations[i] = {lat: msg[i].room_lat, lng: msg[i].room_lng}
+		for(var i = 0; i < result.length; i++){
+			locations[i] = {lat: result[i].room_lat, lng: result[i].room_lng}
 		}
 
 
@@ -241,7 +256,7 @@ function initMap(){
 	************************************/
 
 	//목적지와 가까운 거리순으로 방 목록 생성
-	function makeList(msg){
+	function makeList(result){
 		
 		$("#room-list *").remove();
 		enterPrevNum = -1;
@@ -250,19 +265,19 @@ function initMap(){
 		var locations = [];
 		var title;
 		
-		for(var i = 0; i < msg.length; i++){
-			var imgUrlStr = msg[i].room_img_url;
+		for(var i = 0; i < result.length; i++){
+			var imgUrlStr = result[i].room_img_url;
 			var imgUrlArr = imgUrlStr.split(",");
 			
-			if(msg[i].room_selling_type == '월세'){
-				title = msg[i].room_money_deposit + " / " + msg[i]. room_money_monthly_rent;
-			}else if(msg[i].room_selling_type == '전세'){
-				title = msg[i].room_money_lease;
+			if(result[i].room_selling_type == '월세'){
+				title = result[i].room_money_deposit + " / " + result[i]. room_money_monthly_rent;
+			}else if(result[i].room_selling_type == '전세'){
+				title = result[i].room_money_lease;
 			}else{
 				title = "기타";
 			}
 
-			var keywords = msg[i].room_keywords;
+			var keywords = result[i].room_keywords;
 			var keywordArr = keywords.split(",");
 			var keytitle = "";
 
@@ -278,7 +293,7 @@ function initMap(){
 					keytitle += "<span>#" + key + "</span> ";
 				}
 			}
-			$("#room-list").append('<li class="col-md-6 room' + msg[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + msg[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + msg[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="far fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + msg[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
+			$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="far fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
 		}
 		
 		
@@ -338,20 +353,21 @@ function initMap(){
 	
 	function getRoomNumber(targetPostion, i){
 	
-		var str = targetPostion.toString();
-		str = str.substring(1,str.length-1);
-		var points = str.split(",");
+		var tpStr = targetPostion.toString();
+		tpStr = tpStr.substring(1,tpStr.length-1);
+		var points = tpStr.split(",");
 		var data = {lat: points[0], lng: points[1]};
+		
 		$.ajax({
 			url : 'get-room-number',
 			method : 'post',
 			data : JSON.stringify(data),
 			contentType : "application/json"
-		}).done(function(msg){
+		}).done(function(roomInfo){
 		
 			var target = [];
 			var pin, top;
-			var roomArr = msg.room;
+			var roomArr = roomInfo.room;
 
 			if(roomArr.length == 1){
 				target.push($(".room"+ roomArr[0].room_number));
@@ -434,23 +450,23 @@ function initMap(){
 	});
 	
 	function schFunction(region){
-		minMaxReset(initAjax);
+		minMaxReset(roomFilters);
 		$.ajax({
 			url : 'search',
 			method : 'post',
 			data : JSON.stringify(region),
 			contentType : 'application/json'
-		}).done(function(msg){
+		}).done(function(regionSearchResult){
 		
-			initAjax.centerLat = msg.points.centerLat;
-			initAjax.centerLng = msg.points.centerLng;
-			initAjax.distance = dist;
+			roomFilters.centerLat = regionSearchResult.points.centerLat;
+			roomFilters.centerLng = regionSearchResult.points.centerLng;
+			roomFilters.distance = dist;
 
-			myLatlng.lat = initAjax.centerLat;
-			myLatlng.lng = initAjax.centerLng;
+			myLatlng.lat = roomFilters.centerLat;
+			myLatlng.lng = roomFilters.centerLng;
 			reSetting(myLatlng);
 			
-			ajaxQuery(initAjax);
+			searchRoom(roomFilters);
 		})
 	}
 	
@@ -472,53 +488,70 @@ function initMap(){
 		} 
 	})
 
-	function keyFunction(arr){
-		KeywordArr = arr.keyword;
-		initAjax.keyword = KeywordArr;
-		keyFunctionAjax(initAjax);
+	function keyFunction(Keywords){
+		KeywordArr = Keywords.keyword;
+		roomFilters.keyword = KeywordArr;
+		keyFunctionAjax(roomFilters);
 	}
 	
 	
-	function keyFunctionAjax(initAjax){
+	function keyFunctionAjax(roomFilters){
 		$.ajax({
 			url : 'keyword',
 			method : 'post',
-			data : JSON.stringify(initAjax),
+			data : JSON.stringify(roomFilters),
 			contentType : 'application/json'
-		}).done(function(msg){
+		}).done(function(returnKeywords){
 			
-			keywordMsg = msg;
+			keywordMsg = returnKeywords;
+			keywordSetting(keywordMsg)
 			
-			$("#keyword-box *").remove();
-			if(msg.length > 0){
-				$("#keyword-box").prev().removeClass("none");
-				$("#keyword-wrapper").removeClass("none");
-				$(".search-header-area").removeClass("mb40");
-				for(var i = 0; i < msg.length; i++){
-					$("#keyword-box").append('<li class="inblock pl15"><p class="color222 inblock keywordDelBtn"><span class="pr05">'+msg[i]+'</span><img src="assets/images/common/close-icon.svg" alt="키워드 삭제"/></p></li>');
-				}
-			}else{
-				$("#keyword-wrapper").addClass("none");
-				$("#keyword-box").prev().addClass("none");
-				$(".search-header-area").addClass("mb40");
-			}
-			
-			roomFilter(initAjax);
+			roomFilter(roomFilters);
 		})
+	}
+	
+	function keywordSetting(keywordMsg){
+		$("#keyword-box *").remove();
+		var keywordMsgArr;
+
+		if(typeof keywordMsg === "string"){
+			if(keywordMsg.includes(",")){
+				keywordMsgArr = keywordMsg.split(",");
+			}else{
+				keywordMsgArr = [keywordMsg];
+			}
+		}else if(typeof keywordMsg === "object"){
+			keywordMsgArr = keywordMsg;
+		}
+		
+		if(keywordMsgArr.length > 0){
+			$("#keyword-box").prev().removeClass("none");
+			$("#keyword-wrapper").removeClass("none");
+			$(".search-header-area").removeClass("mb40");
+			for(var i = 0; i < keywordMsgArr.length; i++){
+				$("#keyword-box").append('<li class="inblock pl15"><p class="color222 inblock keywordDelBtn"><span class="pr05">'+keywordMsgArr[i]+'</span><img src="assets/images/common/close-icon.svg" alt="키워드 삭제"/></p></li>');
+			}
+		}else{
+			$("#keyword-wrapper").addClass("none");
+			$("#keyword-box").prev().addClass("none");
+			$(".search-header-area").addClass("mb40");
+		}
+		
+		keywordArr = keywordMsgArr;
 	}
 	
 	$('#keyword-box').on('click', '.keywordDelBtn', function() {
 		
 		var delKeyword = $(this).find('span').text();
 		
-		for(var i = 0; i < keywordMsg.length; i++){
-			if(keywordMsg[i] == delKeyword){
-				keywordMsg.splice(i,1);
+		for(var i = 0; i < keywordArr.length; i++){
+			if(keywordArr[i] == delKeyword){
+				keywordArr.splice(i,1);
 			}
 		}
 		$(this).parent("li").remove();
 		
-		var keyFunctionArr = {keyword : keywordMsg}
+		var keyFunctionArr = {keyword : keywordArr}
 		keyFunction(keyFunctionArr);
 		
 	})
@@ -532,7 +565,26 @@ function initMap(){
 	$('#sellingType').on('click', '.sellingInput', function() {
 		
 		var sell = $(this).prop("id");
+		modalBoxSetting();
 		
+	})
+	
+	function modalBox(){
+		
+		var mySelltype = roomFilters.room_selling_type;
+		
+		if(mySelltype == "all"){
+			$("#select1").prop("checked",true);
+			$("#select2").prop("checked",true);
+		}else{
+			$("#select1").prop("checked",false);
+			$("#select2").prop("checked",false);
+			$("#"+mySelltype).prop("checked",true);
+		}
+		modalBoxSetting();
+	}
+	
+	function modalBoxSetting(){
 		if(($('#select1').is(":checked") == true && $('#select2').is(":checked") == true) || ($('#select1').is(":checked") == false && $('#select2').is(":checked") == false)){
 			$(".lease-box").addClass("none");
 			$(".monthly-box").addClass("none");
@@ -543,54 +595,75 @@ function initMap(){
 			$(".monthly-box").removeClass("none");
 			$(".lease-box").addClass("none");
 		}
-		
-	})
+	}
 	
 	
 	
-	function minmax(filter){
-		filter.type = 'none';
-		console.log('welcome');
-		console.log(filter);
+	function minmax(roomFilters){
+	
+		roomFilters.type = 'none';
+	
 		$.ajax({
 			url : "minmax",
 			method: "post",
-			data : JSON.stringify(filter),
+			data : JSON.stringify(roomFilters),
 			contentType : "application/json"
-		}).done(function(msg){
-		
+		}).done(function(moneyRangeFilter){
+			
+			modalBox();
+			
 			var modal1 = $("#deposit-modal1");
 			var modal2 = $("#deposit-modal2");
 			
-			if(msg.maxRent > 0){
-				modalDefault(modal2, msg, false, filter);
+			if(moneyRangeFilter.maxRent > 0){
+				modalDefault(modal2, moneyRangeFilter, false, roomFilters);
 			}else{
-				modalDefault(modal1, msg, true, filter);
+				modalDefault(modal1, moneyRangeFilter, true, roomFilters);
 			}
 			
 		}) //end done
+		
 	}
 	
-	function modalDefault(modal, msg, type, filter){
+	function modalDefault(modal, moneyRangeFilter, type, roomFilters){
 		if(type){
 			var defaultModal = modal.find('.default-range');
-			modalCommon(defaultModal, msg.min, msg.max, msg.multi, filter, 100, 'lease');
+			modalCommon(defaultModal, moneyRangeFilter.min, moneyRangeFilter.max, moneyRangeFilter.multi, roomFilters, 100, 'lease');
 		}else{
 			var defaultModal = modal.find('.default-range');
-			modalCommon(defaultModal, msg.min, msg.max, msg.multi, filter, 50, 'deposit');
+			modalCommon(defaultModal, moneyRangeFilter.min, moneyRangeFilter.max, moneyRangeFilter.multi, roomFilters, 50, 'deposit');
 			var monthModal = modal.find('.monthly-range');
-		   	modalCommon(monthModal, msg.minRent, msg.maxRent, msg.rentMulti, filter, 10, 'rent');
+		   	modalCommon(monthModal, moneyRangeFilter.minRent, moneyRangeFilter.maxRent, moneyRangeFilter.rentMulti, roomFilters, 10, 'rent');
 		}
 
 	}
 	
-	function modalCommon(modal, modalMin, modalMax, modalMulti, filter, stepNum, roomType){
+	function modalCommon(modal, modalMin, modalMax, modalMulti, roomFilters, stepNum, roomType){
+
+		var rename = ['min' + roomType, 'max' + roomType];
+		roomFilters.type = roomType;
 		
+		var setMin, setMax;
+					
 		modal.find('ul li.min').text(modalMin);
 		modal.find('ul li.multi').text(modalMulti);
 		modal.find('ul li.max').text(modalMax);
-		modal.find('.price-range-result .min').text(modalMin);
-		modal.find('.price-range-result .max').text(modalMax);
+		
+		if(roomFilters[rename[0]] > 0){
+			modal.find('.price-range-result .min').text(roomFilters[rename[0]]);
+			setMin = roomFilters[rename[0]];
+		}else{
+			modal.find('.price-range-result .min').text(modalMin);
+			setMin = modalMin;
+		}
+		
+		if(roomFilters[rename[1]] > 0){
+			modal.find('.price-range-result .max').text(roomFilters[rename[1]]);
+			setMax = roomFilters[rename[1]];
+		}else{
+			modal.find('.price-range-result .max').text(modalMax);
+			setMax = modalMax;
+		}
 	
 		modal.find('.price-range-block input').on('change', function () {
 		  var min_price_range = parseInt(modalMin);
@@ -615,7 +688,7 @@ function initMap(){
 				orientation: "horizontal",
 				min: modalMin,
 				max: modalMax,
-				values: [modalMin, modalMax],
+				values: [setMin, setMax],
 				step: stepNum,
 				slide: function (event, ui) {
 				  	if (ui.values[0] == ui.values[1]) {
@@ -628,21 +701,18 @@ function initMap(){
 					  ui.values[0] = modalMin;
 					}
 					
-					var rename = ['min' + roomType, 'max' + roomType];
-					filter.type = roomType;
+					roomFilters[rename[0]] = ui.values[0];
+					roomFilters[rename[1]] = ui.values[1];
 					
-					filter[rename[0]] = ui.values[0];
-					filter[rename[1]] = ui.values[1];
-					
-					minValue = filter[rename[0]];
-					maxValue = filter[rename[1]];
+					minValue = roomFilters[rename[0]];
+					maxValue = roomFilters[rename[1]];
 					  
 				    modal.find('.min_price').val(minValue);
 				    modal.find('.max_price').val(maxValue);
 				    modal.find('.price-range-result .min').text(minValue);
 					modal.find('.price-range-result .max').text(maxValue);
 
-					roomFilter(filter);
+					roomFilter(roomFilters);
 				}
 			   }); //end slider-range
 		  
@@ -666,9 +736,9 @@ function initMap(){
 			id = "all";
 		}
 		
-	  	initAjax.room_selling_type = id;
-		roomFilter(initAjax);
-	  	minmax(initAjax);
+	  	roomFilters.room_selling_type = id;
+		roomFilter(roomFilters);
+	  	minmax(roomFilters);
 	})
 	
 	
@@ -682,20 +752,25 @@ function initMap(){
 	
 	function roomOrder(rangeArr){
 		range = rangeArr;
-		initAjax.range = range;
-		roomFilter(initAjax);
+		roomFilters.range = range;
+		roomFilter(roomFilters);
 	}
 
-	function roomFilter(filter){
+	function roomFilter(roomFilters){
+		history.replaceState(roomFilters, "BokDuckBang", uriPathname + "?" +  encodeURIComponent(JSON.stringify(roomFilters)));
+		var filters = history.state;
+		console.log(filters)
 		$.ajax({
 			url : "filter",
 			method: "post",
-			data : JSON.stringify(filter),
+			data : JSON.stringify(filters),
 			contentType : "application/json"
-		}).done(function(msg){
-			delete initAjax['minVal'];
-			var result = msg.result;
-			console.log(result.length);
+		}).done(function(returnRooms){
+			delete roomFilters['minVal'];
+
+			var result = returnRooms.result;
+		console.log(result.length)
+
 			if(result.length > 0){
 				makeCluster(result);
 				makeList(result);
@@ -707,7 +782,6 @@ function initMap(){
 				enterEvent();
 			}
 		})
-
 	}
 	
 	/*****************************
@@ -727,23 +801,28 @@ function initMap(){
 	
 	function minMaxReset(filter){
 		if(filter['minlease']){
-			delete filter.minlease 
+			delete roomFilters.minlease 
 		}
 		if(filter['maxlease']){
-			delete filter.maxlease 
+			delete roomFilters.maxlease 
 		}
 		if(filter['mindeposit']){
-			delete filter.mindeposit 
+			delete roomFilters.mindeposit 
 		}
 		if(filter['maxdeposit']){
-			delete filter.maxdeposit 
+			delete roomFilters.maxdeposit 
 		}
 		if(filter['minrent']){
-			delete filter.minrent 
+			delete roomFilters.minrent 
 		}
 		if(filter['maxrent']){
-			delete filter.maxrent 
+			delete roomFilters.maxrent 
 		}
 	}
+	
+	window.onpopstate = function (e) {
+		$("#menu-nav a").fadeTo('fast', 1.0);
+		setCurrentPage(e.state ? e.state.url : null);
+	};
 
 }

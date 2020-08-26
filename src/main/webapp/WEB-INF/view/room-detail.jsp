@@ -41,7 +41,7 @@
 							</div>
 							<div class="tableCell vm milestone d-flex flex-row align-items-start justify-content-start">
 								<div class="milestone_content">
-									<div class="milestone_counter counter bold keycolor" data-end-value="${room.room_likes}">0</div>
+									<div class="milestone_counter counter bold keycolor" data-end-value="${like}">0</div>
 									<span class="milestone_title block">Likes</span>
 								</div>
 							</div>
@@ -59,7 +59,7 @@
 							<c:if test="${room.room_selling_type} == '월세'">
 								${room.room_money_deposit} / ${room.room_money_monthly_rent}
 							</c:if>
-						</p>
+						</p>s
 							<p class="tableCell w50 tar">
 								<c:forEach var="keyword" items="${roomKeyword}" begin="1" end="3">
 									#${keyword} 
@@ -163,7 +163,6 @@
 ></script>
 
 <script>
-
 	var myLatlng = {lat: ${room.room_lat}, lng: ${room.room_lng}};
 	var companyLatlng = {lat: 37.516349, lng: 127.019931};
 </script>
