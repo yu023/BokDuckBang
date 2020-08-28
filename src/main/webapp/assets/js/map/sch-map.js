@@ -81,6 +81,7 @@ function initMap(){
 
 	history.pushState(roomFilters, "BokDuckBang", uriPathname + "?" + encodeURIComponent(JSON.stringify(roomFilters)));
 	
+	//get 에 parameter 있으면 해당 조건 적용하여 검색
 	if(uriParam != "" && typeof uriParam != "undefined" && uriParam != null){
 		var decodeURI = decodeURIComponent(uriParam);
 		decodeURI = decodeURI.substring(1,decodeURI.length);
@@ -91,12 +92,19 @@ function initMap(){
 		var keywordStr = roomFilters.keyword;
 		if(keywordStr != "" && typeof keywordStr != "undefined" && keywordStr != null){
 			$("#keywordInput").val(roomFilters.keyword);
-			keywordSetting(roomFilters.keyword);
+			keyFunctionAjax(roomFilters);
+		}else{
+			keywordStr = "";
+			keyFunctionAjax(roomFilters);
+		}
+		for(var i = 0; i < roomFilters.range.length; i++){
+			$("#"+roomFilters.range[i]).prop("checked", true);
 		}
 	}
-  
+	
+	
 	//첫 화면 function 뿌려주기
-	searchRoom(roomFilters);
+	keyFunctionAjax(roomFilters);
 	modalBox();
 	  
 	/*****************************
@@ -496,6 +504,10 @@ function initMap(){
 	
 	
 	function keyFunctionAjax(roomFilters){
+		if(typeof roomFilters.keyword == "undefined" || roomFilters.keyword == null){
+			roomFilters.keyword = "";
+		} 
+
 		$.ajax({
 			url : 'keyword',
 			method : 'post',
@@ -512,7 +524,7 @@ function initMap(){
 	
 	function keywordSetting(keywordMsg){
 		$("#keyword-box *").remove();
-		var keywordMsgArr;
+		var keywordMsgArr = "";
 
 		if(typeof keywordMsg === "string"){
 			if(keywordMsg.includes(",")){
@@ -523,8 +535,8 @@ function initMap(){
 		}else if(typeof keywordMsg === "object"){
 			keywordMsgArr = keywordMsg;
 		}
-		
-		if(keywordMsgArr.length > 0){
+
+		if(typeof keywordMsg != "undefined" && keywordMsgArr.length > 0){
 			$("#keyword-box").prev().removeClass("none");
 			$("#keyword-wrapper").removeClass("none");
 			$(".search-header-area").removeClass("mb40");
@@ -759,7 +771,7 @@ function initMap(){
 	function roomFilter(roomFilters){
 		history.replaceState(roomFilters, "BokDuckBang", uriPathname + "?" +  encodeURIComponent(JSON.stringify(roomFilters)));
 		var filters = history.state;
-		console.log(filters)
+
 		$.ajax({
 			url : "filter",
 			method: "post",
@@ -769,7 +781,6 @@ function initMap(){
 			delete roomFilters['minVal'];
 
 			var result = returnRooms.result;
-		console.log(result.length)
 
 			if(result.length > 0){
 				makeCluster(result);
@@ -820,9 +831,5 @@ function initMap(){
 		}
 	}
 	
-	window.onpopstate = function (e) {
-		$("#menu-nav a").fadeTo('fast', 1.0);
-		setCurrentPage(e.state ? e.state.url : null);
-	};
 
 }

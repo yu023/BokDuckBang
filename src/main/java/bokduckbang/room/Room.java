@@ -7,6 +7,7 @@ public class Room {
 	
 	private String room_selling_type;
 	private Integer room_type;
+	private String room_type_str;
 	private String room_address;
 	private String room_complex_id;
 	private String room_dong;
@@ -78,9 +79,6 @@ public class Room {
 	public String getRoom_lat_lng() {
 		return room_lat_lng;
 	}
-//	public void setRoom_lat_lng(String room_lat_lng) {
-//		this.room_lat_lng = room_lat_lng;
-//	}
 	public void setRoom_lat_lng(String room_lat_lng) {
 		String[] arr = room_lat_lng.split(",");
 		setRoom_lng(Double.valueOf(arr[0]));
@@ -115,7 +113,22 @@ public class Room {
 		return room_type;
 	}
 	public void setRoom_type(Integer room_type) {
+		if(room_type == 0) {
+			setRoom_type_str("원룸");
+		}else if(room_type == 1) {
+			setRoom_type_str("투룸");
+		}else if(room_type == 2) {
+			setRoom_type_str("쓰리룸");
+		}else {
+			setRoom_type_str("포룸 이상");
+		}
 		this.room_type = room_type;
+	}
+	public String getRoom_type_str() {
+		return room_type_str;
+	}
+	public void setRoom_type_str(String room_type_str) {
+		this.room_type_str = room_type_str;
 	}
 	public String getRoom_money_lease() {
 		return room_money_lease;

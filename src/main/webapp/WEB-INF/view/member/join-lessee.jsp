@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
-<jsp:include page="include/header.jsp" flush="false" />
+<jsp:include page="../include/header.jsp" flush="false" />
 
 <div class="sub-container">
 	<!--visual start -->
@@ -56,18 +56,8 @@
 						<label for="member_dest_loc">직장 주소</label>
 					</th>
 					<td>
-						<input class="input-default btnInput" placeholder="주소찾기를 통하여 입력해주세요." disabled="disabled" type="text" name="member_dest_loc1"/>
+						<input class="input-default btnInput" placeholder="주소찾기를 통하여 입력해주세요." type="text" name="member_dest_loc" readonly />
 						<div class="inblock formBtn"><a onclick="javascript:postAddr();" href='javascript:void(0);' class="btn-default bgGray bdGray">주소찾기</a></div>
-						<input class="input-default mt05" disabled="disabled" type="text" placeholder="상세주소" name="member_dest_loc2"/>
-						<input class="input-default none" type="text" name="member_dest_loc"/>
-					</td>
-				</tr>
-				<tr>
-					<th>
-						<label for="member_like_area">선호 지역</label>
-					</th>
-					<td>
-						<input class="input-default" type="text" name="member_like_area" />
 					</td>
 				</tr>
 				<tr>
@@ -77,14 +67,15 @@
 					<td>
 						<ul class="tab-box pr10">
 							<li>
-								<input class="sellingInput" name="select" id="select1" type="checkbox">
+								<input class="sellingInput" name="select" id="select1" type="radio">
 								<label for="select1">전세</label>
 							</li>
 							<li>
-								<input class="sellingInput" name="select" id="select2" type="checkbox">
+								<input class="sellingInput" name="select" id="select2" type="radio">
 								<label for="select2">월세</label>
 							</li>
 						</ul>
+						<input class="input-default none" type="text" value="" name="member_like_room_type" readOnly/>
 					</td>
 				</tr>
 			</table>
@@ -100,4 +91,4 @@
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
 <script src="assets/js/member/member.js"></script>
-<jsp:include page="include/footer.jsp" flush="false" />
+<jsp:include page="../include/footer.jsp" flush="false" />

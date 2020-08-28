@@ -4,18 +4,17 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="MemberMapper">
-  <select id="selectId" resultType="int">
-    select 1
-  </select>
-  <insert id="insertMember" parameterType="bokduckbang.member.MemberLessor">
+  <insert id="insertMember" parameterType="java.util.HashMap">
    	  INSERT INTO member
    	  (
    	  	member_email,
-   	  	member_type
+   	  	member_type,
+   	  	member_password
    	  )
    	  values(
    	  	#{member_email},
-   	  	false
+   	  	#{member_type},
+   	  	#{member_password}
    	  )
   </insert>
   <insert id="insertLessor" parameterType="bokduckbang.member.MemberLessor">
@@ -50,8 +49,11 @@
 		<if test="member_dest_loc != null">
 			,member_dest_loc
 		</if>
-		<if test="member_like_area != null">
-			,member_like_area
+		<if test="member_dest_lat != null">
+			,member_dest_lat
+		</if>
+		<if test="member_dest_lng != null">
+			,member_dest_lng
 		</if>
 		<if test="member_like_room_num != null">
 			,member_like_room_num
@@ -68,8 +70,11 @@
    	  	<if test="member_dest_loc != null">
    	  		,#{member_dest_loc}
    	  	</if>
-   	  	<if test="member_like_area != null">
-   	  		,#{member_like_area}
+   	  	<if test="member_dest_lat != null">
+   	  		,#{member_dest_lat}
+   	  	</if>
+   	  	<if test="member_dest_lng != null">
+   	  		,#{member_dest_lng}
    	  	</if>
    	  	<if test="member_like_room_num != null">
    	  		,#{member_like_room_num}
@@ -77,20 +82,18 @@
    	  )
   </insert>
   <select id="checkId" parameterType="java.util.HashMap" resultType="object">
-	  	select member_email from member_lessor where member_email = #{id}
-		union select member_email from member_lessee  where member_email = #{id};
+	  	select member_email from member where member_email = #{id};
+  </select>
+  <select id="businessLicenseChecker" parameterType="java.util.HashMap" resultType="object">
+	  	select member_email from member_lessor where member_business_license = #{member_business_license};
   </select>
   <select id="checkMember" parameterType="bokduckbang.member.CheckMember" resultType="bokduckbang.member.Member">
   	select
   	member_email
 	,member_password
-	,member_phone
-	,member_name
-	,member_like_room_type
-	,member_dest_loc
-	,member_like_area
-	,member_like_room_num
-	from member_lessee
+	,member_type
+	,member_create_date
+	from member
 	<where>
 		<if test="member_email != null">
 			AND

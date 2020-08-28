@@ -16,25 +16,23 @@ public class MemberDao {
 
 	@Autowired
 	SqlSession sqlSession;
-	
-	public void insertMember(MemberLessor lessor) {
-		sqlSession.insert("MemberMapper.insertMember" , lessor);
-	}
-	
-	public void insertMember(MemberLessee lessee) {
-		sqlSession.insert("MemberMapper.insertMember" , lessee);
-	}
-	
-	public void insertLessor(MemberLessor lessor) {
+
+	public void insertLessor(MemberLessor lessor, HashMap<String, Object> member) {
+		sqlSession.insert("MemberMapper.insertMember" , member);
 		sqlSession.insert("MemberMapper.insertLessor" , lessor);
 	}
 	
-	public void insertLessee(MemberLessee lessee) {
+	public void insertLessee(MemberLessee lessee, HashMap<String, Object> member) {
+		sqlSession.insert("MemberMapper.insertMember" , member);
 		sqlSession.insert("MemberMapper.insertLessee" , lessee);
 	}
 	
 	public Object checkId(HashMap<String, String> map) {
 		return sqlSession.selectOne("MemberMapper.checkId" , map);
+	}
+	
+	public Object businessLicenseChecker(HashMap<String, String> map) {
+		return sqlSession.selectOne("MemberMapper.businessLicenseChecker" , map);
 	}
 	
 	public Member checkMember(CheckMember checkMember) {

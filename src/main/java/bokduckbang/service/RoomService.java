@@ -65,6 +65,7 @@ public class RoomService {
 	}
 	
 	public HashMap<String, Object> schRoomList(HashMap<String, Object> keyword) {
+		System.out.println(keyword);
 		String ky = keyword.get("keyword").toString();
 		String myUrl = "";
 		try {
@@ -77,7 +78,7 @@ public class RoomService {
 		
 		JsonObject je = openJsonObject(myUrl, false);
 		JsonArray resultArr = parsingHsArr(je, "results");
-		System.out.println("resultArr : " + resultArr);
+
 		JsonObject result = (JsonObject) resultArr.get(0);
 		JsonObject geometry = (JsonObject) result.get("geometry");
 		
@@ -86,8 +87,6 @@ public class RoomService {
 		map.put("centerLat", location.get("lat").getAsDouble());
 		map.put("centerLng", location.get("lng").getAsDouble());
 		map.put("distance", 5.0);
-		
-		System.out.println("map : " +map);
 
 		return map;
 	}
@@ -137,10 +136,10 @@ public class RoomService {
 			}
 			list.add("%"+str+"%");
 		}
-		
+
 		keywordMap.put("list", list);
 		keywordMap.put("keywordSch", true);
-		System.out.println(list);
+
 		if(returnList.size() == 0) {
 			returnList.clear();
 		}
@@ -165,25 +164,26 @@ public class RoomService {
 		if(rangeHs.containsKey("select1") || rangeHs.containsKey("select2")) {
 			rangeHs.put("max", true);
 			rangeHs.put("min", true);
+			MinMax minMax = roomDao.selectMoney(rangeHs).get(0);
+			if(minMax != null) {
+				if(rangeHs.containsKey("select1") && (Boolean) rangeHs.get("select1")) {
+					money.put("max",minMax.getMaxLease());
+					money.put("min",minMax.getMinLease());
+					minMax.setMulti(money.get("max"), money.get("min"));
+					money.put("multi",minMax.getMulti());
+				}else if(rangeHs.containsKey("select2") && (Boolean) rangeHs.get("select2")) {
+					money.put("max",minMax.getMaxDeposit());
+					money.put("min",minMax.getMinDeposit());
+					minMax.setMulti(money.get("max"), money.get("min"));
+					money.put("multi",minMax.getMulti());
+					money.put("maxRent",minMax.getMaxRent());
+					money.put("minRent",minMax.getMinRent());
+					minMax.setRentMulti(money.get("maxRent"), money.get("minRent"));
+					money.put("rentMulti",minMax.getRentMulti());
+				}
+			}
 		}
 		
-		if(rangeHs.containsKey("select1") && (Boolean) rangeHs.get("select1")) {
-			MinMax minMax = roomDao.selectMoney(rangeHs).get(0);
-			money.put("max",minMax.getMaxLease());
-			money.put("min",minMax.getMinLease());
-			minMax.setMulti(money.get("max"), money.get("min"));
-			money.put("multi",minMax.getMulti());
-		}else if(rangeHs.containsKey("select2") && (Boolean) rangeHs.get("select2")) {
-			MinMax minMax = roomDao.selectMoney(rangeHs).get(0);
-			money.put("max",minMax.getMaxDeposit());
-			money.put("min",minMax.getMinDeposit());
-			minMax.setMulti(money.get("max"), money.get("min"));
-			money.put("multi",minMax.getMulti());
-			money.put("maxRent",minMax.getMaxRent());
-			money.put("minRent",minMax.getMinRent());
-			minMax.setRentMulti(money.get("maxRent"), money.get("minRent"));
-			money.put("rentMulti",minMax.getRentMulti());
-		}
 		
 		return money;
 	}
@@ -246,9 +246,12 @@ public class RoomService {
 			rangeHs.put("maxrent", map.get("maxrent"));
 		}
 		
-		if(keywordMap != null && (Boolean)keywordMap.get("keywordSch")) {
-			rangeHs.put("keywordSch", true);
-			rangeHs.put("list", keywordMap.get("list"));
+		if(null != keywordMap && keywordMap.containsKey("keywordSch")) {
+			List<String> keyList = (List<String>) keywordMap.get("list");
+			if(keyList.size() >0) {
+				rangeHs.put("keywordSch", true);
+				rangeHs.put("list", keywordMap.get("list"));
+			}
 		}
 		if(sellStr.equals("select1")) {
 			rangeHs.put("select1", true);

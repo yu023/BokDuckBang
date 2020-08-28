@@ -20,19 +20,43 @@ public class MemberService {
 	
 	@Transactional
 	public void lessorInsert(MemberLessor lessor) {
-		memberDao.insertMember(lessor);
-		memberDao.insertLessor(lessor);
+		HashMap<String, Object> member = new HashMap<String, Object>();
+		member.put("member_email", lessor.getMember_email());
+		member.put("member_type", lessor.getMember_type()); 
+		member.put("member_password", lessor.getMember_password()); 
+		memberDao.insertLessor(lessor,member);
 	}
 	
 	@Transactional
-	public void lesseeInsert(MemberLessee lessee) {
-		memberDao.insertMember(lessee);
-		memberDao.insertLessee(lessee);
+	public void lesseeInsert(MemberLessee lessee, RoomService roomService, String key) {
+		
+		HashMap<String, Object> getPoints = new HashMap<String,Object>();
+		getPoints.put("key", key);
+		getPoints.put("keyword", lessee.getMember_dest_loc());
+		
+		getPoints = roomService.schRoomList(getPoints);
+		
+		lessee.setMember_dest_lat(Double.valueOf(getPoints.get("centerLat").toString()));
+		lessee.setMember_dest_lng(Double.valueOf(getPoints.get("centerLng").toString()));
+		
+		getPoints.put("member_email", lessee.getMember_email());
+		getPoints.put("member_type", lessee.getMember_type());
+		getPoints.put("member_password", lessee.getMember_password()); 
+		
+		memberDao.insertLessee(lessee, getPoints);
+	}
+	
+	public Boolean businessLicenseChecker(HashMap<String, String> map) {
+		Object obj = memberDao.businessLicenseChecker(map);
+		if(obj != null) {
+			return false;
+		}else {
+			return true;
+		}
 	}
 	
 	public Boolean idChecker(HashMap<String, String> map) {
 		Object obj = memberDao.checkId(map);
-		System.out.println(obj);
 		if(obj != null) {
 			return false;
 		}else {

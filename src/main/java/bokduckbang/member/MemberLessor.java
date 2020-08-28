@@ -5,15 +5,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class MemberLessor {
 	
-	String member_email;
-	String member_password;
-	String member_business_license;
-	String member_business_name;
-	String member_ceo_name;
-	String member_business_phn_num;
-	String member_purchase_goods;
-	String member_amount;
+	private Boolean member_type = false;
+	private String member_email;
+	private String member_password;
+	private String member_business_license;
+	private String member_business_name;
+	private String member_ceo_name;
+	private String member_business_phn_num;
+	private String member_purchase_goods;
+	private String member_amount;
 	
+	public Boolean getMember_type() {
+		return member_type;
+	}
 	public String getMember_email() {
 		return member_email;
 	}

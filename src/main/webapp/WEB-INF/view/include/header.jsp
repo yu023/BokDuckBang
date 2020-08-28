@@ -68,8 +68,6 @@
 	</head>
 <%
 	application.setAttribute("root", request.getContextPath());
-	session.setAttribute("loginUrl", "login");
-	session.setAttribute("loginMsg", "로그인");
 %>
 	<body>
 		<!--[if lte IE 9]>
@@ -102,7 +100,14 @@
 									<ul class="nav navbar-nav navbar-right">
 										<li class="smooth-menu"><a href="${root}/search-room">방 보러가기</a></li>
 										<li class="smooth-menu"><a href="${root}/room-recommend">추천</a></li>
-										<li class="smooth-menu"><a href="${root}/${sessionScope.loginUrl}">${sessionScope.loginMsg}</a></li>
+										<li class="smooth-menu">
+										<c:if test="${sessionScope.member ne null}">
+											<a href="${root}/logout">로그아웃</a>
+										</c:if>
+										<c:if test="${sessionScope.member eq null}">
+											<a href="${root}/login">로그인</a>
+										</c:if>
+										</li>
 									</ul>
 								</div><!-- /.navbar-collapse -->
 							</div><!-- /.main-menu-->

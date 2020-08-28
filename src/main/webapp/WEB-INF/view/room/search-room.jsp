@@ -1,11 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<jsp:include page="include/header.jsp" flush="false" />
+<jsp:include page="../include/header.jsp" flush="false" />
 <link rel="stylesheet" href="assets/css/search-room-style.css" />
 
 <div class="sub-container">
-	<jsp:include page="include/search-header.jsp" flush="false" />
+	<jsp:include page="../include/search-header.jsp" flush="false" />
 	<!--visual start -->
 	<section class="map-wrapper">
 		<div class="container">
@@ -50,4 +50,4 @@
 <script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
 <script src="assets/js/map/sch-map.js"></script>
 <script src="assets/plugin/scrollmagic/ScrollMagic.min.js"></script>
-<jsp:include page="include/footer.jsp" flush="false" />
+<jsp:include page="../include/footer.jsp" flush="false" />

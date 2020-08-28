@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
-<jsp:include page="include/header.jsp" flush="false" />
+<jsp:include page="../include/header.jsp" flush="false" />
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" href="assets/css/room-detail-style.css" />
 <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -41,7 +41,7 @@
 							</div>
 							<div class="tableCell vm milestone d-flex flex-row align-items-start justify-content-start">
 								<div class="milestone_content">
-									<div class="milestone_counter counter bold keycolor" data-end-value="${like}">0</div>
+									<div class="milestone_counter counter bold keycolor" data-end-value="${room.room_likes}">0</div>
 									<span class="milestone_title block">Likes</span>
 								</div>
 							</div>
@@ -53,20 +53,28 @@
 					<ul>
 						<li class="table">
 						<p class="tableCel w50 tal price-title">
-							<c:if test="${room.room_selling_type} == '전세'">
+							<c:if test="${room.room_selling_type eq '전세'}">
 								${room.room_money_lease}
 							</c:if>
-							<c:if test="${room.room_selling_type} == '월세'">
+							<c:if test="${room.room_selling_type eq '월세'}">
 								${room.room_money_deposit} / ${room.room_money_monthly_rent}
 							</c:if>
-						</p>s
+						</p>
 							<p class="tableCell w50 tar">
+								#${room.room_type_str} 
 								<c:forEach var="keyword" items="${roomKeyword}" begin="1" end="3">
 									#${keyword} 
 								</c:forEach>
 							</p>
 						</li>
-						<li class="etc-title">관리비 (${room.room_service}) - ${room.room_service_charge}</li>
+						<li class="etc-title">
+							<c:if test="${room.room_service eq ''}">
+								관리비 (항목 없음) - ${room.room_service_charge}
+							</c:if>
+							<c:if test="${room.room_service ne ''}">
+								관리비 (${room.room_service}) - ${room.room_service_charge}
+							</c:if>
+							</li>
 						<li class="etc-title">주차비 - ${room.room_park_charge}</li>
 						<li>
 							<table class="common-table w100">
@@ -123,9 +131,14 @@
 							<div class="card">
 								<h3 class="text-sub-title tac mb20">옵션</h3>
 								<ul>
-									<c:forEach var="option" items="${roomOption}">
-										<li>${option}</li>
-									</c:forEach>
+									<c:if test="${roomOption eq ''}">
+										<c:forEach var="option" items="${roomOption}">
+											<li>${option}</li>
+										</c:forEach>
+									</c:if>
+									<c:if test="${roomOption ne ''}">
+										<li>해당사항 없음</li>
+									</c:if>
 								</ul>
 							</div>
 						</div>
@@ -177,4 +190,4 @@
 
 <script src="assets/js/scroll.js"></script>
 
-<jsp:include page="include/footer.jsp" flush="false" />
+<jsp:include page="../include/footer.jsp" flush="false" />

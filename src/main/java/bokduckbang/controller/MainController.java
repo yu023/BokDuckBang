@@ -58,69 +58,82 @@ public class MainController {
 
 	@RequestMapping("/select-join-type")
 	public String joinType() {
-		return "select-join-type";
+		return "member/select-join-type";
 	}
 	
 	@RequestMapping("/join-lessee")
 	public String joinProcessLessee() {
-		return "join-lessee";
+		return "member/join-lessee";
 	}
 	
 	@RequestMapping("/join-lessor")
 	public String joinProcessLessor() {
-		return "join-lessor";
+		return "member/join-lessor";
 	}
 	
 	@RequestMapping("/joinLessee")
-	public String joinProcessLessor(MemberLessee lessee) {
-		memberService.lesseeInsert(lessee);
-		return "join-lessor";
+	public String joinProcessLessor(MemberLessee lessee, RoomService roomService) throws ParseException {
+		memberService.lesseeInsert(lessee, roomService, commonService.getMyKey());
+		return "member/join-finish";
 	}
 	
 	@RequestMapping("/joinLessor")
 	public String joinProcessLessor(MemberLessor lessor) {
 		memberService.lessorInsert(lessor);
-		return "join-lessor";
+		return "member/join-finish";
 	}
 	
 	
 	@RequestMapping("/room-recommend")
 	public String roomRecommend() {
-		return "room-recommend";
+		return "room/room-recommend";
 	}
 	
 	@RequestMapping("/idChecker")
 	@ResponseBody
 	public HashMap<String, String> idCheker(@RequestBody HashMap<String, String> map) {
 		Boolean chk = memberService.idChecker(map);
-		System.out.println(chk);
 		if(chk) {
 			map.put("chkResult", "사용 가능한 아이디입니다");
 		}else {
 			map.put("chkResult", "이미 존재하는 아이디입니다");
 		}
-		System.out.println(map);
 		return map;
 	}
 	
 	@RequestMapping("/login")
 	public String login() {
-		return "login";
+		return "member/login";
+	}
+	
+	@RequestMapping("/logout")
+	public String logout(HttpSession session) {
+		session.invalidate();
+		return "index";
 	}
 	
 	@RequestMapping("/loginProcess")
 	public String loginProcess(CheckMember checkMember, HttpSession session) {
 		HashMap<String, Object> checker = memberService.loginProcess(checkMember);
 		if((Boolean)checker.get("result")) {
-			session.setAttribute("loginUrl", "logout");
-			session.setAttribute("loginMsg", "로그아웃");
 			session.setAttribute("member", checker.get("member"));
-			return "/";
+			return "/index";
 		}else {
-			session.setAttribute("loginUrl", "login");
-			session.setAttribute("loginMsg", "로그인");
-			return "/login";
+			session.setAttribute("email", checkMember.getMember_email());
+			return "member/login";
 		}
+	}
+	
+	@RequestMapping("/businessLicenseChecker")
+	@ResponseBody
+	public HashMap<String, String> businessLicenseChecker(@RequestBody HashMap<String, String> licenseMap) {
+		Boolean chk = memberService.businessLicenseChecker(licenseMap);
+		if(chk) {
+			licenseMap.put("chkResult", "사용 가능한 사업자 번호입니다");
+		}else {
+			licenseMap.put("chkResult", "이미 존재하는 사업자 번호입니다");
+		}
+		return licenseMap;
 	}
 	
 	@RequestMapping("/getCenterLatLng")
@@ -142,7 +155,7 @@ public class MainController {
 	@RequestMapping("/search-room")
 	public String searchRoom(HashMap<Object, Object> map) throws ParseException {
 		map.put("key", commonService.getMyKey());
-		return "search-room";
+		return "room/search-room";
 	}
 	
 	@RequestMapping("/room-detail")
@@ -154,7 +167,7 @@ public class MainController {
 		model.addAttribute("roomKeyword", roomService.roomKeyword(room));
 		model.addAttribute("roomOption", roomService.roomOption(room));
 		model.addAttribute("like", 10);
-		return "room-detail";
+		return "room/room-detail";
 	}
 	
 	

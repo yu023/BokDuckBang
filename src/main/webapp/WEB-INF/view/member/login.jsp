@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
-<jsp:include page="include/header.jsp" flush="false" />
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<jsp:include page="../include/header.jsp" flush="false" />
 
 <div class="sub-container">
 	<!--visual start -->
@@ -13,7 +14,8 @@
 						<label for="member_email">이메일</label>
 					</th>
 					<td>
-						<input class="input-default" type="text" name="member_email" required="required" />
+						
+						<input class="input-default" <c:if test="${sessionScope.email ne null}">value="${sessionScope.email}"</c:if> type="text" name="member_email" required="required" />
 					</td>
 				</tr>
 				<tr>
@@ -26,7 +28,7 @@
 				</tr>
 			</table>
 			<div class="mt10 mb10 tar">
-				<a class="inblock mr10" href="${root}/join-lessee">회원가입</a>
+				<a class="inblock mr10" href="${root}/select-join-type">회원가입</a>
 				<a class="inblock" href="${root}/findIdPw">이메일/비밀번호찾기</a>
 			</div>
 			<div class="cf mt20">
@@ -37,4 +39,4 @@
 	<!--visual end -->
 </div>
 
-<jsp:include page="include/footer.jsp" flush="false" />
+<jsp:include page="../include/footer.jsp" flush="false" />
