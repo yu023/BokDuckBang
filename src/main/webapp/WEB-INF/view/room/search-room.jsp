@@ -42,12 +42,18 @@
 	<!--visual end -->
 </div>
 
+<script>
+  var memberChk = null ;
+  memberChk = "<%= session.getAttribute("member") %>" ;
+</script>
+
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 <script
       src="https://maps.googleapis.com/maps/api/js?libraries=geometry&callback=initMap&key=${key}"
       defer
 ></script>
 <script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
+<script src="assets/js/room/room.js"></script>
 <script src="assets/js/map/sch-map.js"></script>
 <script src="assets/plugin/scrollmagic/ScrollMagic.min.js"></script>
 <jsp:include page="../include/footer.jsp" flush="false" />

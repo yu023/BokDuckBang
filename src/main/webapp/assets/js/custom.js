@@ -24,7 +24,6 @@ $(document).ready(function(){
 5. datepicker
 6. Smooth Scroll spy
 7. Animation support
-8. like
 ======================================*/
     
 
@@ -180,13 +179,4 @@ $(document).ready(function(){
 
 });	
 
-	 // 8. like
-	 
-	 	function like(elem){
-	 		$(elem).toggleClass("far fas");
-	 	}
-	 
-	 	function txtLike(elem){
-	 		$(elem).find('i').toggleClass("far fas");
-	 	}
 	

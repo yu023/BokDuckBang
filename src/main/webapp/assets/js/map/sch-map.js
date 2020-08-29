@@ -100,11 +100,12 @@ function initMap(){
 		for(var i = 0; i < roomFilters.range.length; i++){
 			$("#"+roomFilters.range[i]).prop("checked", true);
 		}
+	}else{
+		//첫 화면 param 없을 경우 function 뿌려주기
+		keyFunctionAjax(roomFilters);
 	}
 	
-	
 	//첫 화면 function 뿌려주기
-	keyFunctionAjax(roomFilters);
 	modalBox();
 	  
 	/*****************************
@@ -264,7 +265,7 @@ function initMap(){
 	************************************/
 
 	//목적지와 가까운 거리순으로 방 목록 생성
-	function makeList(result){
+	function makeList(result,likeList){
 		
 		$("#room-list *").remove();
 		enterPrevNum = -1;
@@ -273,6 +274,7 @@ function initMap(){
 		var locations = [];
 		var title;
 		
+		likeCatchLoops:
 		for(var i = 0; i < result.length; i++){
 			var imgUrlStr = result[i].room_img_url;
 			var imgUrlArr = imgUrlStr.split(",");
@@ -301,7 +303,18 @@ function initMap(){
 					keytitle += "<span>#" + key + "</span> ";
 				}
 			}
-			$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="far fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
+			
+			if(memberChk == "null"){
+				$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
+			}else{
+				for(var j = 0; j < likeList.length; j++){
+					if(likeList[j] == result[i].room_number){
+						$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="fas fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
+						continue likeCatchLoops;
+					}
+				}
+				$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="far fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
+			}
 		}
 		
 		
@@ -518,7 +531,7 @@ function initMap(){
 			keywordMsg = returnKeywords;
 			keywordSetting(keywordMsg)
 			
-			roomFilter(roomFilters);
+			searchRoom(roomFilters);
 		})
 	}
 	
@@ -781,10 +794,11 @@ function initMap(){
 			delete roomFilters['minVal'];
 
 			var result = returnRooms.result;
+			var likeList = returnRooms.likeList;
 
 			if(result.length > 0){
 				makeCluster(result);
-				makeList(result);
+				makeList(result,likeList);
 				enterEvent();
 			}else if(result.length == 0){
 				$("#room-list *").remove();

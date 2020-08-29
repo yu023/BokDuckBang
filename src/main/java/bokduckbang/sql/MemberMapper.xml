@@ -81,6 +81,17 @@
    	  	</if>
    	  )
   </insert>
+  <insert id="insertLikes" parameterType="java.util.HashMap">
+   	  INSERT INTO room_likes
+   	  (
+   	  	likes_member_id,
+   	  	likes_room
+   	  )
+   	  values(
+   	  	#{likes_member_id},
+   	  	#{likes_room}
+   	  )
+  </insert>
   <select id="checkId" parameterType="java.util.HashMap" resultType="object">
 	  	select member_email from member where member_email = #{id};
   </select>
@@ -105,4 +116,20 @@
 		</if>
 	</where>
   </select>
+  <select id="getLikes" parameterType="string" resultType="object">
+	  	select likes_room from room_likes
+	  	where likes_member_id = #{value};
+  </select>
+  <select id="checkLikes" parameterType="java.util.HashMap" resultType="object">
+	  	select likes_room from room_likes
+	  	where
+	  	likes_member_id = #{likes_member_id}
+	  	AND
+	  	likes_room = #{likes_room}
+  </select>
+  <update id="deleteLikes" parameterType="string">
+  	   DELETE FROM room_likes
+  	   WHERE likes_member_id = #{likes_member_id}
+	   and likes_room = #{likes_room}
+  </update>
 </mapper>

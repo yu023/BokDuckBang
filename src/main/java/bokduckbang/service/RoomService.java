@@ -10,14 +10,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import bokduckbang.dao.RoomDao;
+import bokduckbang.member.Member;
 import bokduckbang.room.MinMax;
 import bokduckbang.room.Room;
 
@@ -271,6 +275,7 @@ public class RoomService {
 				+ "&departure_time=now"
 				+ "&key=" + map.get("key");
 		
+		
 		HashMap<String, Object> fastRoot = new HashMap<String, Object>();
 			
 		JsonObject je = openJsonObject(myUrl, true);
@@ -349,6 +354,23 @@ public class RoomService {
 		map.put("DetailRoomInfo", true);
 		map.put("room_number", num);
 		return roomDao.selectRoom(map).get(0);
+	}
+	
+	public Model returnRoomDetail(int num, Model model, HttpSession session, MemberService memberService) {
+		Room room = roomDetail(num);
+		Member member = (Member) session.getAttribute("member");
+		
+		HashMap<String, Object> likesMap = new HashMap<String,Object>();
+		likesMap.put("likes_member_id", member.getMember_email());
+		likesMap.put("likes_room", room.getRoom_number());
+		
+		model.addAttribute("room", room);
+		model.addAttribute("roomUrl", roomImgUrl(room));
+		model.addAttribute("roomKeyword", roomKeyword(room));
+		model.addAttribute("roomOption", roomOption(room));
+		model.addAttribute("roomLikes", memberService.checkLikes(likesMap));
+		
+		return model;
 	}
 	
 	public String[] roomImgUrl(Room room) {

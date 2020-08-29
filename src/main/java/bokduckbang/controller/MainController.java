@@ -37,6 +37,9 @@ public class MainController {
 	@Autowired
 	private RoomService roomService;
 	
+	@Autowired
+	HttpSession session;
+	
 	@RequestMapping("/input")
 	public String input() {
 		return "input";
@@ -107,13 +110,13 @@ public class MainController {
 	}
 	
 	@RequestMapping("/logout")
-	public String logout(HttpSession session) {
+	public String logout() {
 		session.invalidate();
 		return "index";
 	}
 	
 	@RequestMapping("/loginProcess")
-	public String loginProcess(CheckMember checkMember, HttpSession session) {
+	public String loginProcess(CheckMember checkMember) {
 		HashMap<String, Object> checker = memberService.loginProcess(checkMember);
 		if((Boolean)checker.get("result")) {
 			session.setAttribute("member", checker.get("member"));
@@ -160,14 +163,16 @@ public class MainController {
 	
 	@RequestMapping("/room-detail")
 	public String roomDetail(Model model, @RequestParam int num) throws ParseException {
-		Room room = roomService.roomDetail(num);
 		model.addAttribute("key", commonService.getMyKey());
-		model.addAttribute("room", room);
-		model.addAttribute("roomUrl", roomService.roomImgUrl(room));
-		model.addAttribute("roomKeyword", roomService.roomKeyword(room));
-		model.addAttribute("roomOption", roomService.roomOption(room));
-		model.addAttribute("like", 10);
+		roomService.returnRoomDetail(num, model, session, memberService);
 		return "room/room-detail";
+	}
+	
+	@RequestMapping("/room-likes")
+	@ResponseBody
+	public void roomLikes(Model model, @RequestBody HashMap<String, Object> map) throws ParseException {
+		memberService.makeLikes(session, map);
+		
 	}
 	
 	
@@ -195,6 +200,8 @@ public class MainController {
 		List<Room> rooms = roomService.filter(filter);
 		HashMap<String, Object> newhs = new HashMap<String, Object>();
 		if(rooms != null) {
+			List<Integer> list = memberService.getLikeList(session);
+			newhs.put("likeList", list);
 			newhs.put("result", rooms);
 			return newhs;
 		}else {

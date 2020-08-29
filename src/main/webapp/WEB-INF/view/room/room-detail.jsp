@@ -10,7 +10,14 @@
 		<!-- testemonial Start -->
 		<section class="room-detail-box">
 			<div class="room-detail-top">
-				<div onclick="txtLike(this)" class="like">LIKE <i class="far fa-heart"></i></div>
+				<c:if test="${sessionScope.member ne null}">
+					<c:if test="${roomLikes}">
+						<div class="like">LIKE <i class="fas fa-heart"></i></div>
+					</c:if>
+					<c:if test="${!roomLikes}">
+						<div class="like">LIKE <i class="far fa-heart"></i></div>
+					</c:if>
+				</c:if>
 				<div class="owl-carousel owl-theme" id="room-gallery-carousel">
 					
 					<c:forEach var="room" items="${roomUrl}">
@@ -181,6 +188,7 @@
 </script>
 
 <script src="assets/js/map/detail-room-map.js"></script>
+<script src="assets/js/room/room.js"></script>
 
 <script src="assets/plugin/greensock/TweenMax.min.js"></script>
 <script src="assets/plugin/greensock/TimelineMax.min.js"></script>

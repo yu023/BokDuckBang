@@ -1,6 +1,9 @@
 package bokduckbang.service;
 
 import java.util.HashMap;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +49,26 @@ public class MemberService {
 		memberDao.insertLessee(lessee, getPoints);
 	}
 	
+	public Boolean checkLikes(HashMap<String, Object> likesMap) {
+		if(null == memberDao.checkLikes(likesMap)) {
+			return false;
+		}else {
+			return true;
+		}
+	}
+
+	public void makeLikes(HttpSession session, HashMap<String, Object> likesMap) {
+		if(null != session && null != session.getAttribute("member")) {
+			Member member = (Member) session.getAttribute("member");
+			likesMap.put("likes_member_id", member.getMember_email());
+			if(!checkLikes(likesMap)) {
+				memberDao.insertLikes(likesMap);
+			}else {
+				memberDao.deleteLikes(likesMap);
+			}
+		}
+	}
+	
 	public Boolean businessLicenseChecker(HashMap<String, String> map) {
 		Object obj = memberDao.businessLicenseChecker(map);
 		if(obj != null) {
@@ -81,5 +104,14 @@ public class MemberService {
 			checker.put("msg", "아이디, 패스워드를 모두 입력하여 주십시오.");
 		}
 		return checker;
+	}
+	
+	public List<Integer> getLikeList(HttpSession session) {
+		List<Integer> list = null;
+		if(session != null && null != session.getAttribute("member")) {
+			Member member = (Member)session.getAttribute("member");
+			list = memberDao.getLikes(member.getMember_email());
+		}
+		return list;
 	}
 }
