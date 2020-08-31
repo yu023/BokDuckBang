@@ -68,6 +68,18 @@ public class RoomService {
 		return pointMap;
 	}
 	
+	public HashMap<String, Object> setLikesRoom(List<Integer> list) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		if(list.size() != 0) {
+			map.put("likesRoom", true);
+			map.put("room_number", list);
+			map.put("roomList", roomDao.selectRoom(map));
+		}else {
+			map.put("likesRoom", false);
+		}
+		return map;
+	}
+	
 	public HashMap<String, Object> schRoomList(HashMap<String, Object> keyword) {
 		System.out.println(keyword);
 		String ky = keyword.get("keyword").toString();
@@ -357,20 +369,27 @@ public class RoomService {
 	}
 	
 	public Model returnRoomDetail(int num, Model model, HttpSession session, MemberService memberService) {
+		roomDao.addRoomHits(num);
 		Room room = roomDetail(num);
-		Member member = (Member) session.getAttribute("member");
 		
-		HashMap<String, Object> likesMap = new HashMap<String,Object>();
-		likesMap.put("likes_member_id", member.getMember_email());
-		likesMap.put("likes_room", room.getRoom_number());
+		if(session != null && session.getAttribute("member") != null) {
+			Member member = (Member) session.getAttribute("member");
+			HashMap<String, Object> likesMap = new HashMap<String,Object>();
+			likesMap.put("likes_member_id", member.getMember_email());
+			likesMap.put("likes_room", room.getRoom_number());
+			model.addAttribute("roomLikes", memberService.checkLikes(likesMap));
+		}
 		
 		model.addAttribute("room", room);
 		model.addAttribute("roomUrl", roomImgUrl(room));
 		model.addAttribute("roomKeyword", roomKeyword(room));
 		model.addAttribute("roomOption", roomOption(room));
-		model.addAttribute("roomLikes", memberService.checkLikes(likesMap));
 		
 		return model;
+	}
+	
+	public void countRoomLikes(HashMap<String, Object> likesMap) {
+		roomDao.countRoomLikes(likesMap);
 	}
 	
 	public String[] roomImgUrl(Room room) {

@@ -31,6 +31,14 @@ public class RoomDao {
 		}
 	}
 	
+	public Integer addRoomHits(Integer i) {
+		return sqlSession.update("RoomMapper.addRoomHits", i);
+	}
+	
+	public Integer countRoomLikes(HashMap<String, Object> map) {
+		return sqlSession.update("RoomMapper.countRoomLikes", map);
+	}
+	
 	public List<Room> selectRoom(HashMap<String, Object> map){
 		return sqlSession.selectList("RoomMapper.SelectRoom", map);
 	}

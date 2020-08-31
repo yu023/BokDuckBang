@@ -99,7 +99,7 @@
 								<div class="collapse navbar-collapse">		  
 									<ul class="nav navbar-nav navbar-right">
 										<li class="smooth-menu"><a href="${root}/search-room">방 보러가기</a></li>
-										<li class="smooth-menu"><a href="${root}/room-recommend">추천</a></li>
+										<li class="smooth-menu"><a href="${root}/room-likes-list">찜한 목록</a></li>
 										<li class="smooth-menu">
 										<c:if test="${sessionScope.member ne null}">
 											<a href="${root}/logout">로그아웃</a>

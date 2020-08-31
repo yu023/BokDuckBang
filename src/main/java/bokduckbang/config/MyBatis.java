@@ -43,9 +43,7 @@ public class MyBatis {
 
 	@Bean
 	public SqlSession sqlSession(SqlSessionFactory sqlSessionFactory) {
-		System.out.println("dataSource5:" + sqlSessionFactory);
-		SqlSession ss = new SqlSessionTemplate(sqlSessionFactory);
-		return ss;
+		return new SqlSessionTemplate(sqlSessionFactory);
 	}
 	
 	@Bean

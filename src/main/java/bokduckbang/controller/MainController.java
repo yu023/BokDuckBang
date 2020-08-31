@@ -87,9 +87,19 @@ public class MainController {
 	}
 	
 	
-	@RequestMapping("/room-recommend")
+	@RequestMapping("/room-likes-list")
 	public String roomRecommend() {
-		return "room/room-recommend";
+		if(session != null && session.getAttribute("member") != null) {
+			return "room/room-likes";
+		}else {
+			return "member/login";
+		}
+	}
+	
+	@RequestMapping("/set-room-likes")
+	@ResponseBody
+	public HashMap<String, Object> setRoomLikes() {
+		return roomService.setLikesRoom(memberService.getLikeList(session));
 	}
 	
 	@RequestMapping("/idChecker")
@@ -170,9 +180,8 @@ public class MainController {
 	
 	@RequestMapping("/room-likes")
 	@ResponseBody
-	public void roomLikes(Model model, @RequestBody HashMap<String, Object> map) throws ParseException {
-		memberService.makeLikes(session, map);
-		
+	public Boolean roomLikes(Model model, @RequestBody HashMap<String, Object> map) throws ParseException {
+		return memberService.makeLikes(session, map, roomService);
 	}
 	
 	

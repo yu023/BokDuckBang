@@ -118,7 +118,8 @@
   </select>
   <select id="getLikes" parameterType="string" resultType="object">
 	  	select likes_room from room_likes
-	  	where likes_member_id = #{value};
+	  	where likes_member_id = #{value}
+	  	order by member_create_date desc;
   </select>
   <select id="checkLikes" parameterType="java.util.HashMap" resultType="object">
 	  	select likes_room from room_likes

@@ -4,10 +4,6 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="RoomMapper">
-<select id="abc" resultType="object">
-	select * from test
-	where tester = 10
-  </select>
   <insert id="roomInsert" parameterType="bokduckbang.room.Room">
    	  INSERT INTO room
    	  (
@@ -114,6 +110,22 @@
    	  )
   </insert>
   
+  <update id="addRoomHits" parameterType="int">
+		UPDATE room SET room_hits = room_hits + 1 WHERE room_number = #{value};
+  </update>
+  
+  <update id="countRoomLikes" parameterType="java.util.HashMap">
+		UPDATE room SET room_likes = room_likes
+		<if test="count">
+			+ 1
+		</if>
+		<if test="!count">
+			- 1
+		</if>
+		WHERE room_number = #{likes_room};
+  </update>
+  
+  
   <select id="dupChkRoom" parameterType="bokduckbang.room.Room" resultType="object">
 	select room_number
 	from room
@@ -215,8 +227,21 @@
 					room_monthly_rent_num &lt;= #{maxrent}
 				</if>
 			</if>
+			<if test="likesRoom">
+				room_number in 
+				<foreach collection="room_number" item="number" open="(" close=")" separator=",">
+		            #{number.value}
+		        </foreach>
+				group by room_number
+			</if>
 		</where>
 		order by 1=1
+		<if test="likesRoom">
+			, field 
+			<foreach collection="room_number" item="number" open="(room_number," close=")" separator=",">
+	            #{number.value}
+	        </foreach>
+		</if>
 		<if test="orderDistance">
 			,ST_Distance( room_lat_lng,
 			ST_GeomFromText(#{point}) )
@@ -259,6 +284,7 @@
 		</if>
    </select>
    
+
 	<select id="SelectMoney" parameterType="java.util.HashMap" resultType="bokduckbang.room.MinMax">
 		select 
 		<if test="max">

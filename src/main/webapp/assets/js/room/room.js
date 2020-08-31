@@ -14,6 +14,10 @@ function addLikes(elem){
 		method : 'post',
 		data : JSON.stringify(number),
 		contentType : 'application/json'
+	}).done(function(msg){
+		if(msg){
+			
+		}
 	})
 }
 

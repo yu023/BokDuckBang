@@ -57,16 +57,24 @@ public class MemberService {
 		}
 	}
 
-	public void makeLikes(HttpSession session, HashMap<String, Object> likesMap) {
+	public Boolean makeLikes(HttpSession session, HashMap<String, Object> likesMap, RoomService roomService) {
+		Boolean result = null;
 		if(null != session && null != session.getAttribute("member")) {
 			Member member = (Member) session.getAttribute("member");
 			likesMap.put("likes_member_id", member.getMember_email());
 			if(!checkLikes(likesMap)) {
 				memberDao.insertLikes(likesMap);
+				likesMap.put("count", true);
+				roomService.countRoomLikes(likesMap);
+				result = true;
 			}else {
 				memberDao.deleteLikes(likesMap);
+				likesMap.put("count", false);
+				roomService.countRoomLikes(likesMap);
+				result = false;
 			}
 		}
+		return result;
 	}
 	
 	public Boolean businessLicenseChecker(HashMap<String, String> map) {
