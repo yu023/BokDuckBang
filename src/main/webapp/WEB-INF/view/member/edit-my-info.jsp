@@ -6,10 +6,7 @@
 <div class="sub-container">
 	<!--visual start -->
 	<section class="container inner-container">
-		<h1 class="text-title text-sub-title">
-			<c:if test="${sessionScope.member eq null}">로그인</c:if>
-			<c:if test="${sessionScope.member ne null}">회원인증</c:if>
-		</h1>
+		<h1 class="text-title text-sub-title">회원정보수정</h1>
 		<form class="basic-form" action="${root}/loginProcess" method="post">
 			<table>
 				<tr>
@@ -17,7 +14,8 @@
 						<label for="member_email">이메일</label>
 					</th>
 					<td>
-						<input class="input-default" <c:if test="${sessionScope.member eq null}">value="${sessionScope.email}"</c:if> <c:if test="${sessionScope.member ne null}">value="${sessionScope.member.member_email}" readonly</c:if> type="text" name="member_email" required="required" />
+						
+						<input class="input-default" <c:if test="${sessionScope.email ne null}">value="${sessionScope.email}"</c:if> type="text" name="member_email" required="required" />
 					</td>
 				</tr>
 				<tr>

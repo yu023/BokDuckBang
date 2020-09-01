@@ -92,11 +92,95 @@
    	  	#{likes_room}
    	  )
   </insert>
+  <update id="updateMemberInfo" parameterType="java.util.HashMap">
+  		UPDATE 
+  		<if test="member_type == 0">
+  		member_lessor
+  		</if>
+  		<if test="member_type == 1">
+  		member_lessee
+  		</if>
+  		 SET
+		member_password = #{member_password}
+		WHERE
+		member_email = #{member_email}
+		AND
+		<if test="member_type == 0">
+			member_ceo_name = #{member_name}
+		</if>
+		<if test="member_type == 1">
+			member_name = #{member_name}
+		</if>
+  </update>
+  <update id="updateMember" parameterType="java.util.HashMap">
+  		UPDATE  member SET
+		member_password = #{member_password}
+		WHERE
+		member_email = #{member_email}
+  </update>
+  <update id="updateMemberLessee" parameterType="bokduckbang.member.MemberLessee">
+  		UPDATE  member_lessee  SET
+   	  	member_password = #{member_password}
+   	  	, member_phone = #{member_phone}
+		, member_name = #{member_name}
+		<if test="member_like_room_type != null">
+			,member_like_room_type = #{member_like_room_type}
+		</if>
+		<if test="member_dest_loc != null">
+			,member_dest_loc = #{member_dest_loc}
+		</if>
+		<if test="member_dest_lat != null">
+			,member_dest_lat = #{member_dest_lat}
+		</if>
+		<if test="member_dest_lng != null">
+			,member_dest_lng = #{member_dest_lng}
+		</if>
+		<if test="member_like_room_num != null">
+			,member_like_room_num = #{member_like_room_num}
+		</if>
+		WHERE
+		member_email = #{member_email}
+  </update>
+  <update id="updateMemberLessor" parameterType="bokduckbang.member.MemberLessor">
+  		UPDATE  member_lessor  SET
+		member_email = #{member_email},
+   	  	member_password = #{member_password},
+   	  	member_business_license = #{member_business_license},
+   	  	member_business_name = #{member_business_name},
+   	  	member_ceo_name = #{member_ceo_name},
+   	  	member_business_phn_num = #{member_business_phn_num}
+		<if test="member_purchase_goods != null">
+			,member_purchase_goods = #{member_purchase_goods}
+		</if>
+		<if test="member_amount != null">
+			,member_amount = #{member_amount}
+		</if>
+		WHERE
+		member_email = #{member_email}
+  </update>
   <select id="checkId" parameterType="java.util.HashMap" resultType="object">
 	  	select member_email from member where member_email = #{id};
   </select>
   <select id="businessLicenseChecker" parameterType="java.util.HashMap" resultType="object">
 	  	select member_email from member_lessor where member_business_license = #{member_business_license};
+  </select>
+  <select id="selectMember" parameterType="java.util.HashMap" resultType="string">
+	  	select member_email 
+	  	from 
+	  	<if test="member_type == 0">
+	  		member_lessor
+	  		where
+		  	member_ceo_name = #{member_name}
+		  	and
+		  	member_business_phn_num = #{member_phone}
+	  	</if>
+	  	<if test="member_type == 1">
+	  		member_lessee
+	  		where
+		  	member_name = #{member_name}
+		  	and
+		  	member_phone = #{member_phone}
+	  	</if>
   </select>
   <select id="checkMember" parameterType="bokduckbang.member.CheckMember" resultType="bokduckbang.member.Member">
   	select
@@ -115,6 +199,16 @@
 			member_password = #{member_password}
 		</if>
 	</where>
+  </select>
+  <select id="getMemberLessee" parameterType="string" resultType="bokduckbang.member.MemberLessee">
+	  	select *
+	  	from member_lessee
+	  	where member_email = #{value};
+  </select>
+  <select id="getMemberLessor" parameterType="string" resultType="bokduckbang.member.MemberLessor">
+	  	select *
+	  	from member_lessor
+	  	where member_email = #{value};
   </select>
   <select id="getLikes" parameterType="string" resultType="object">
 	  	select likes_room from room_likes

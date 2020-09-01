@@ -28,8 +28,31 @@ public class MemberDao {
 		sqlSession.insert("MemberMapper.insertLessee" , lessee);
 	}
 	
+	public Integer updateMemberInfo(HashMap<String, Object> memberMap) {
+		sqlSession.update("MemberMapper.updateMember", memberMap);
+		return sqlSession.update("MemberMapper.updateMemberInfo", memberMap);
+	}
+	
 	public Integer insertLikes(HashMap<String, Object> likesMap) {
 		return sqlSession.insert("MemberMapper.insertLikes", likesMap);
+	}
+	
+	public MemberLessee getMemberLessee(String email) {
+		return sqlSession.selectOne("MemberMapper.getMemberLessee", email);
+	}
+	
+	public MemberLessor getMemberLessor(String email) {
+		return sqlSession.selectOne("MemberMapper.getMemberLessor", email);
+	}
+	
+	public void updateMemberLessee(MemberLessee lessee,  HashMap<String, String> member) {
+		sqlSession.update("MemberMapper.updateMember" , member);
+		sqlSession.update("MemberMapper.updateMemberLessee", lessee);
+	}
+	
+	public void updateMemberLessor(MemberLessor lessor,  HashMap<String, String> member) {
+		sqlSession.update("MemberMapper.updateMember" , member);
+		sqlSession.update("MemberMapper.updateMemberLessor", lessor);
 	}
 	
 	public Object checkLikes(HashMap<String, Object> map) {
@@ -38,6 +61,10 @@ public class MemberDao {
 	
 	public Object deleteLikes(HashMap<String, Object> map) {
 		return sqlSession.update("MemberMapper.deleteLikes" , map);
+	}
+	
+	public String selectMember(HashMap<String, Object> map){
+		return sqlSession.selectOne("MemberMapper.selectMember" , map);
 	}
 	
 	public Object checkId(HashMap<String, String> map) {

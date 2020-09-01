@@ -76,14 +76,12 @@ public class MainController {
 	
 	@RequestMapping("/joinLessee")
 	public String joinProcessLessor(MemberLessee lessee, RoomService roomService) throws ParseException {
-		memberService.lesseeInsert(lessee, roomService, commonService.getMyKey());
-		return "member/join-finish";
+		return memberService.editLesseeInfo(lessee, roomService, commonService.getMyKey(), session);
 	}
 	
 	@RequestMapping("/joinLessor")
-	public String joinProcessLessor(MemberLessor lessor) {
-		memberService.lessorInsert(lessor);
-		return "member/join-finish";
+	public String joinProcessLessor(MemberLessor lessor, RoomService roomService) throws ParseException {
+		return memberService.editLessorInfo(lessor, roomService, commonService.getMyKey(), session);
 	}
 	
 	
@@ -127,14 +125,24 @@ public class MainController {
 	
 	@RequestMapping("/loginProcess")
 	public String loginProcess(CheckMember checkMember) {
-		HashMap<String, Object> checker = memberService.loginProcess(checkMember);
-		if((Boolean)checker.get("result")) {
-			session.setAttribute("member", checker.get("member"));
-			return "/index";
-		}else {
-			session.setAttribute("email", checkMember.getMember_email());
-			return "member/login";
-		}
+		return memberService.returnLoginUri(session, checkMember);
+	}
+	
+	@RequestMapping("/findIdPw")
+	public String findIdPw() {
+		return "member/findIdPw";
+	}
+	
+	@RequestMapping("/findId")
+	@ResponseBody
+	public String findId(@RequestBody HashMap<String, Object> map) {
+		return memberService.findMemberId(map);
+	}
+	
+	@RequestMapping("/findPw")
+	@ResponseBody
+	public HashMap<String, Object> findPw(@RequestBody HashMap<String, Object> map) {
+		return memberService.sendMailPw(map);
 	}
 	
 	@RequestMapping("/businessLicenseChecker")

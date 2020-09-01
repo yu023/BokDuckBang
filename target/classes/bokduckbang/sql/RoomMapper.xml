@@ -236,15 +236,15 @@
 			</if>
 		</where>
 		order by 1=1
+		<if test="orderDistance">
+			,ST_Distance( room_lat_lng,
+			ST_GeomFromText(#{point}) )
+		</if>
 		<if test="likesRoom">
 			, field 
 			<foreach collection="room_number" item="number" open="(room_number," close=")" separator=",">
 	            #{number.value}
 	        </foreach>
-		</if>
-		<if test="orderDistance">
-			,ST_Distance( room_lat_lng,
-			ST_GeomFromText(#{point}) )
 		</if>
 		<if test="rangeFilterRoom">
 			<if test="range3">

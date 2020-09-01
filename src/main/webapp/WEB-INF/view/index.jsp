@@ -10,9 +10,9 @@
 				<div class="col-sm-12">
 					<div class="single-about-us">
 						<div class="about-us-txt">
-							<h2>Explore the Beauty of the Beautiful World</h2>
-							<div class="about-btn">
-								<button class="about-view">방 보러가기</button>
+							<h2>당신만을 위해 준비된 단 하나의 방, BOKDUCKBANG</h2>
+							<div class="about-btn button tal">
+								<a href="${root}/search-room" class="keybg colorfff tac">방 보러가기</a>
 							</div>
 							<!--/.about-btn-->
 						</div>

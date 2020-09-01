@@ -4,7 +4,6 @@
 <link rel="stylesheet" href="assets/css/search-room-style.css" />
 
 <div class="sub-container">
-	<jsp:include page="../include/search-header.jsp" flush="false" />
 	<!--visual start -->
 	<section class="map-wrapper">
 		<div class="container">

@@ -100,13 +100,16 @@
 									<ul class="nav navbar-nav navbar-right">
 										<li class="smooth-menu"><a href="${root}/search-room">방 보러가기</a></li>
 										<li class="smooth-menu"><a href="${root}/room-likes-list">찜한 목록</a></li>
-										<li class="smooth-menu">
 										<c:if test="${sessionScope.member ne null}">
-											<a href="${root}/logout">로그아웃</a>
+											<li class="smooth-menu"><a href="${root}/login">마이페이지</a></li>
 										</c:if>
-										<c:if test="${sessionScope.member eq null}">
-											<a href="${root}/login">로그인</a>
-										</c:if>
+										<li class="smooth-menu">
+											<c:if test="${sessionScope.member ne null}">
+												<a href="${root}/logout">로그아웃</a>
+											</c:if>
+											<c:if test="${sessionScope.member eq null}">
+												<a href="${root}/login">로그인</a>
+											</c:if>
 										</li>
 									</ul>
 								</div><!-- /.navbar-collapse -->

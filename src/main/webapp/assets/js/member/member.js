@@ -19,7 +19,6 @@ function checkId(){
 	email.text(emailVal);
 	
 	if(checkReg.test(emailVal)){
-		console.log("email true")
 		$.ajax({
 			url : 'idChecker',
 			data : JSON.stringify(idCheckData),
@@ -30,7 +29,6 @@ function checkId(){
 		})
 		return true;
 	}else{
-		console.log("email false")
 		email.next().next('.msg-box').text("이메일 형식이 아닙니다.");
 		email.focus();
 		return false;
@@ -51,11 +49,20 @@ function checkMember(){
 }
 	
 function checkLessorMember(){
-	if(checkPw() && checkId() && businessLicense()){
-		return true;
+	if(session != ""){
+		if(checkPw() && checkId()){
+			return true;
+		}else{
+			alert("id/pw 혹은 사업자번호를 확인해주세요.");
+			return false;
+		}
 	}else{
-		alert("id/pw 혹은 사업자번호를 확인해주세요.");
-		return false;
+		if(checkPw() && checkId() && businessLicense()){
+			return true;
+		}else{
+			alert("id/pw 혹은 사업자번호를 확인해주세요.");
+			return false;
+		}
 	}
 }
 
@@ -73,7 +80,6 @@ function businessLicense(){
 	var Blicense = $("input[name='member_business_license']");
 	if(Blicense.val() != ""){
 		var BlicenseMap = {"member_business_license" : Blicense.val()};
-		console.log(BlicenseMap);
 		$.ajax({
 			url : 'businessLicenseChecker',
 			method : 'post',
