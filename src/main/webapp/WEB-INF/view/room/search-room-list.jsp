@@ -1,4 +1,4 @@
-
+<%-- 
 <ul class="row" id="room-list">
 	<li class="col-md-6">
 		<a href="${root}/room-detail">
@@ -99,3 +99,4 @@
 		</a>
 	</li>
 </ul>
+ --%>

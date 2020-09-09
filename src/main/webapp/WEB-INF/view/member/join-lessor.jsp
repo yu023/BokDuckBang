@@ -75,7 +75,7 @@
 						<label for="member_business_phn_num">대표 번호</label>
 					</th>
 					<td>
-						<input class="input-default" type="text" name="member_business_phn_num" <c:if test="${sessionScope.memberInfo ne null}">value="${sessionScope.memberInfo.member_business_phn_num}"</c:if>/>
+						<input class="input-default numberOnly" type="text" name="member_business_phn_num" <c:if test="${sessionScope.memberInfo ne null}">value="${sessionScope.memberInfo.member_business_phn_num}"</c:if>/>
 					</td>
 				</tr>
 			</table>

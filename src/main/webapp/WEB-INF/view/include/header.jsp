@@ -99,8 +99,13 @@
 								<div class="collapse navbar-collapse">		  
 									<ul class="nav navbar-nav navbar-right">
 										<li class="smooth-menu"><a href="${root}/search-room">방 보러가기</a></li>
-										<li class="smooth-menu"><a href="${root}/room-likes-list">찜한 목록</a></li>
-										<c:if test="${sessionScope.member ne null}">
+										<c:if test="${sessionScope.member.member_type eq 1}">
+											<li class="smooth-menu"><a href="${root}/room-likes-list">찜한 목록</a></li>
+											<li class="smooth-menu"><a href="${root}/login">마이페이지</a></li>
+										</c:if>
+										<c:if test="${sessionScope.member.member_type eq 0}">
+											<li class="smooth-menu"><a href="${root}/my-room-list">내 방 목록</a></li>
+											<li class="smooth-menu"><a href="${root}/my-room-reservation">예약현황</a></li>
 											<li class="smooth-menu"><a href="${root}/login">마이페이지</a></li>
 										</c:if>
 										<li class="smooth-menu">

@@ -87,21 +87,19 @@ function businessLicense(){
 			contentType : 'application/json'
 		}).done(function(result){
 			Blicense.next().next('.msg-box').text(result.chkResult);
+			if(result.rst == "false"){
+				return false;
+			}
 		})
+		return true;
+	}else{
+		return false;
 	}
 }
 
-$(".numberOnly").on('keydown keypress keyup', function(e){
-	if(e.keyCode == 45){
-		return false;
-	}
-})
-
-$(".numberOnly").on('keydown keypress keyup paste input', function(){
+$("input[name='member_business_license']").on('keydown keypress keyup paste input', function(){
 	var inputTxt = $(this).val();
-	
-	$(this).val(inputTxt.replace(/[^\d|-]/g, ''));
-	
+
 	if(inputTxt.length == 3){
 		var myTxt = inputTxt;
 		$(this).val(myTxt + "-");
@@ -110,4 +108,4 @@ $(".numberOnly").on('keydown keypress keyup paste input', function(){
 		var myTxt = inputTxt;
 		$(this).val(myTxt + "-");
 	};
-});
+})

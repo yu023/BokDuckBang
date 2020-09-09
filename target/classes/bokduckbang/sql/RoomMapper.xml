@@ -110,6 +110,17 @@
    	  )
   </insert>
   
+  <insert id="insertRoomImg" parameterType="java.util.HashMap">
+  		insert into room_img
+  		(room_img_number,
+  		room_img)
+  		values
+  		<foreach collection="images" item="val" separator=",">
+	  		(#{room_img_number},
+            #{val})
+        </foreach>
+  </insert>
+  
   <update id="addRoomHits" parameterType="int">
 		UPDATE room SET room_hits = room_hits + 1 WHERE room_number = #{value};
   </update>
@@ -125,6 +136,64 @@
 		WHERE room_number = #{likes_room};
   </update>
   
+  
+  <update id="roomUpdate" parameterType="bokduckbang.room.Room">
+		UPDATE room SET 
+		room_selling_type = #{room_selling_type}
+   	  	,room_address = #{room_address}
+   	  	,room_lat_lng = point(#{room_lat},#{room_lng})
+   	  	,room_lat = #{room_lat}
+   	  	,room_lng = #{room_lng}
+   	  	,room_title = #{room_title}
+   	  	,room_content = #{room_content}
+   	  	,room_type = #{room_type}
+   	
+   	  	<if test="room_money_lease != null">
+	        ,room_money_lease = #{room_money_lease}
+	        ,room_lease_num = #{room_lease_num}
+	    </if>
+   	
+   	  	<if test="room_money_deposit != null">
+	        ,room_money_deposit = #{room_money_deposit}
+	        ,room_money_monthly_rent = #{room_money_monthly_rent}
+	        ,room_deposit_num = #{room_deposit_num}
+	        ,room_monthly_rent_num = #{room_monthly_rent_num}
+	    </if>
+	    
+   	  	,room_service = #{room_service}
+   	  	,room_service_charge = #{room_service_charge}
+   	  	,room_park_charge = #{room_park_charge}
+   	  	,room_width = #{room_width}
+   	  	,room_keywords = #{room_keywords}
+   	  	,room_floor_str = #{room_floor_str}
+   	  	,room_total_floor = #{room_total_floor}
+   	  	,room_elevator = #{room_elevator}
+   	  	,room_heating = #{room_heating}
+   	  	,room_balcony = #{room_balcony}
+   	  	,room_loan = #{room_loan}
+   	  	,room_move_in_date = #{room_move_in_date}
+   	  	,room_option = #{room_option}
+   	  	,room_author_email = #{room_author_email}
+   	
+   	  	<if test="room_img_url != null">
+	        ,room_img_url = #{room_img_url}
+	    </if>
+   	  	<if test="room_complex_id != ''">
+	        ,room_complex_id = #{room_complex_id}
+	    </if>
+   	  	<if test="room_dong != ''">
+	        ,room_dong = #{room_dong}
+	    </if>
+   	  	<if test="room_ho != ''">
+	        ,room_ho = #{room_ho}
+	    </if>
+		WHERE room_number = #{room_number};
+  </update>
+  
+  <update id="changeSellingType" parameterType="int">
+		UPDATE room SET room_status = ((room_status + 1) % 2)
+		WHERE room_number = #{value};
+  </update>
   
   <select id="dupChkRoom" parameterType="bokduckbang.room.Room" resultType="object">
 	select room_number
@@ -154,6 +223,21 @@
 	</trim>
   </select>
   
+  <select id="selectOneRoomImg" parameterType="int" resultType="bokduckbang.room.RoomImg">
+	select room_img_number, room_img
+	from room_img
+	where
+	room_img_number = #{value}
+  </select>
+  
+  <select id="selectRoomImg" parameterType="java.util.List" resultType="bokduckbang.room.RoomImg">
+	select room_img_number, room_img
+	from room_img
+	<foreach collection="list" item="item" open="where" separator=" OR ">
+		room_img_number = #{item.room_number}
+	 </foreach>
+  </select>
+  
   <select id="SelectRoom" parameterType="java.util.HashMap" resultType="bokduckbang.room.Room">
 		SELECT room_number, room_lat, room_lng, room_selling_type, room_type, room_address, room_title, room_content
 		<if test="room_money_lease != ''">
@@ -165,9 +249,18 @@
 		<if test="room_money_monthly_rent != ''">
 			, room_money_monthly_rent
 		</if>
+		<if test="room_dong != ''">
+			, room_dong
+		</if>
+		<if test="room_ho != ''">
+			, room_ho
+		</if>
+		<if test="room_complex_id != ''">
+			, room_complex_id
+		</if>
 	  , room_service, room_service_charge, room_park_charge, room_width, room_keywords, room_img_url, room_floor_str, room_total_floor
 	  ,room_elevator, room_heating, room_balcony, room_loan, room_move_in_date, room_option, room_author_email
-	  ,room_create_date, room_status, room_likes, room_hits
+	  ,room_create_date, room_status, room_likes, room_hits, room_deposit_num, room_lease_num, room_monthly_rent_num
 		FROM room
 		<where>
 			<if test="schFilterRoom or keywordSch">
@@ -228,11 +321,16 @@
 				</if>
 			</if>
 			<if test="likesRoom">
+				AND
 				room_number in 
 				<foreach collection="room_number" item="number" open="(" close=")" separator=",">
 		            #{number.value}
 		        </foreach>
 				group by room_number
+			</if>
+			<if test="setMyRoom">
+				AND
+				room_author_email = #{member_email}
 			</if>
 		</where>
 		order by 1=1
@@ -281,6 +379,9 @@
 			<if test="range2">
 				 ,room_create_date desc
 			</if>
+		</if>
+		<if test="setMyRoom">
+			,room_create_date desc
 		</if>
    </select>
    
@@ -369,6 +470,14 @@
 			</if>
 		</if>
    </select>
+   
+   <delete id="deleteMyRoom" parameterType="int">
+      DELETE FROM room WHERE room_number = #{value};
+   </delete>
+   
+   <delete id="deleteMyRoomImg" parameterType="int">
+      DELETE FROM room_img WHERE room_img_number = #{value};
+   </delete>
   
    
 </mapper>

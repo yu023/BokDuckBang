@@ -24,6 +24,7 @@ $(document).ready(function(){
 5. datepicker
 6. Smooth Scroll spy
 7. Animation support
+8. only number
 ======================================*/
     
 
@@ -175,7 +176,21 @@ $(document).ready(function(){
             $(".about-us-txt button").addClass("animated fadeInDown").css({'opacity':'0'});
 
         });
+      
+        
+      // 8.number only
 
+		$(".numberOnly").on('keydown keypress keyup', function(e){
+			if(e.keyCode == 45){
+				return false;
+			}
+		})
+		
+		$(".numberOnly").on('keydown keypress keyup paste input', function(){
+			var inputTxt = $(this).val();
+			
+			$(this).val(inputTxt.replace(/[^\d|-]/g, ''));
+		});
 
 });	
 

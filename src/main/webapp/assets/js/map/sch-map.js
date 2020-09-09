@@ -1,5 +1,4 @@
 function initMap(){
-
 	
 	/*****************************
 		setting
@@ -25,6 +24,12 @@ function initMap(){
 	//map data setting
 	var dist = 5;
 	var myLatlng = {lat: 37.500625, lng: 127.036411};
+	
+	if(room_lat != "" && room_lng != ""){
+		myLatlng.lat = parseFloat(room_lat);
+		myLatlng.lng = parseFloat(room_lng);
+	}
+	
 	var markers;
 	var markerCluster;
 	var image = 'assets/images/common/selectedMarker.svg';
@@ -100,6 +105,7 @@ function initMap(){
 		for(var i = 0; i < roomFilters.range.length; i++){
 			$("#"+roomFilters.range[i]).prop("checked", true);
 		}
+		$("#seachInput").val(roomFilters.region);
 	}else{
 		//첫 화면 param 없을 경우 function 뿌려주기
 		keyFunctionAjax(roomFilters);
@@ -215,8 +221,10 @@ function initMap(){
 		deleteMarkers();
 		var locations = [];
 		
-		for(var i = 0; i < result.length; i++){
-			locations[i] = {lat: result[i].room_lat, lng: result[i].room_lng}
+		if(null != result){
+			for(var i = 0; i < result.length; i++){
+				locations[i] = {lat: result[i].room_lat, lng: result[i].room_lng}
+			}
 		}
 
 
@@ -277,7 +285,10 @@ function initMap(){
 		likeCatchLoops:
 		for(var i = 0; i < result.length; i++){
 			var imgUrlStr = result[i].room_img_url;
-			var imgUrlArr = imgUrlStr.split(",");
+			var imgUrlArr;
+			if(null != imgUrlStr && -1 != imgUrlStr.search(",") != -1){
+				imgUrlArr = imgUrlStr.split(",");
+			}
 			
 			if(result[i].room_selling_type == '월세'){
 				title = result[i].room_money_deposit + " / " + result[i]. room_money_monthly_rent;
@@ -304,7 +315,7 @@ function initMap(){
 				}
 			}
 			
-			if(memberChk == "null"){
+			if(memberChk == ""){
 				$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
 			}else{
 				for(var j = 0; j < likeList.length; j++){
@@ -337,34 +348,37 @@ function initMap(){
 		$("#room-list li").mouseenter(function(){
 	
 			var href = $(this).find("a").attr("href");
-			var hrefArr = href.split("num=");
-				
-			$.ajax({
-			  url: 'room-position?num=' + hrefArr[1],
-		      method: 'post',
-		      dataType: 'json',
-		      contentType : "application/json",
-			  success : function(data) {
-			  		var pin = {lat: data.myLat, lng: data.myLng};
-			  		
-				  	map.setCenter(pin);
-				  	
-					if(enterPrevNum != -1){
-						markers[enterPrevNum].setIcon(image);
-					}
-				  	
-				  	for(var i = 0; i < markers.length; i++){
-					  	if(markers[i].getPosition().lat() == data.myLat && markers[i].getPosition().lng() == data.myLng){
-					  		roomNum = i;
+			var hrefArr;
+			if("undefined" != typeof href){
+				hrefArr = href.split("num=");
+					
+				$.ajax({
+				  url: 'room-position?num=' + hrefArr[1],
+			      method: 'post',
+			      dataType: 'json',
+			      contentType : "application/json",
+				  success : function(data) {
+				  		var pin = {lat: data.myLat, lng: data.myLng};
+				  		
+					  	map.setCenter(pin);
+					  	
+						if(enterPrevNum != -1){
+							markers[enterPrevNum].setIcon(image);
+						}
+					  	
+					  	for(var i = 0; i < markers.length; i++){
+						  	if(markers[i].getPosition().lat() == data.myLat && markers[i].getPosition().lng() == data.myLng){
+						  		roomNum = i;
+						  	}
 					  	}
-				  	}
-				  	markers[roomNum].setIcon(image);
-					clickMarker.setPosition(pin);
-			   },
-			   error:function(request,status,error){
-			    	console.log("code = "+ request.status + " message = " + request.responseText + " error = " + error);
-			   }
-			 })
+					  	markers[roomNum].setIcon(image);
+						clickMarker.setPosition(pin);
+				   },
+				   error:function(request,status,error){
+				    	console.log("code = "+ request.status + " message = " + request.responseText + " error = " + error);
+				   }
+				 })
+			}
 			 
 		 }).mouseleave(function(){
 				clickMarker.setPosition(null);
@@ -471,7 +485,7 @@ function initMap(){
 	});
 	
 	function schFunction(region){
-		minMaxReset(roomFilters);
+		roomFilters.region = region;
 		$.ajax({
 			url : 'search',
 			method : 'post',
@@ -795,12 +809,12 @@ function initMap(){
 
 			var result = returnRooms.result;
 			var likeList = returnRooms.likeList;
-
-			if(result.length > 0){
+			
+			if(null != result && result.length > 0){
 				makeCluster(result);
 				makeList(result,likeList);
 				enterEvent();
-			}else if(result.length == 0){
+			}else if(null == result || result.length == 0){
 				$("#room-list *").remove();
 				$("#room-list").append('<li>검색되는 결과가 없습니다.</li>');
 				makeCluster(result);

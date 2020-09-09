@@ -1,9 +1,13 @@
 package bokduckbang.service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ import bokduckbang.dao.RoomDao;
 import bokduckbang.member.Member;
 import bokduckbang.room.MinMax;
 import bokduckbang.room.Room;
+import bokduckbang.room.RoomImg;
 
 @Service
 public class RoomService {
@@ -68,6 +73,97 @@ public class RoomService {
 		return pointMap;
 	}
 	
+	public void addMyRoom(HttpSession session, Room room) {
+		if(null != session && null != room) {
+			Member member = (Member) session.getAttribute("member");
+			room.setRoom_author_email(member.getMember_email());
+			System.out.println(room);
+		}
+	}
+	
+	public Boolean BooleanMyRoomImg(HashMap<String, Object> map) throws IOException {
+		Boolean result = null;
+		if(map.containsKey("files")) {
+			roomDao.deleteMyRoomImg(Integer.valueOf(map.get("roomNumber").toString()));
+			result = insertMyRoomImg(map);
+		}
+		return result;
+	}
+	
+	public Boolean insertMyRoomImg(HashMap<String, Object> map) throws IOException {
+		HashMap<String, Object> imgMap = new HashMap<String, Object>();
+		@SuppressWarnings("unchecked")
+		List<String> list = (List<String>) map.get("files");
+		List<byte[]> imgList = new ArrayList<byte[]>();
+		
+		for(String file : list) {
+			byte[] name = file.getBytes();
+			imgList.add(name);
+		}
+		imgMap.put("room_img_number", map.get("roomNumber"));
+		imgMap.put("images", imgList);
+		
+		Integer i = roomDao.insertRoomImg(imgMap);
+		if(i > 0) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	public Model editMyRoom(Integer roomNumber, Model model) throws UnsupportedEncodingException {
+		HashMap<String,Object> map = new HashMap<String,Object>();
+		map.put("DetailRoomInfo", true);
+		map.put("room_number", roomNumber);
+		model.addAttribute("room", roomDao.selectRoom(map).get(0));
+		List<RoomImg> roomImgList = roomDao.selectOneRoomImg(roomNumber);
+		model.addAttribute("roomImgList", returnRoomImgStr(roomImgList));
+		return model;
+	}
+	
+	public List<String> returnRoomImgStr(List<RoomImg> roomImgList) throws UnsupportedEncodingException{
+		List<String> roomImages = new ArrayList<String>();
+		for(int i = 0; i < roomImgList.size(); i++) {
+			roomImages.add(roomImgList.get(i).getRoom_img());
+		}
+		return roomImages;
+	}
+	
+	public Integer updateRoom(Room room, HttpSession session, String key, Integer num) {
+		if(null != room && null != session && null != session.getAttribute("member")) {
+			room.setRoom_number(num);
+			Member member = (Member) session.getAttribute("member");
+			room.setRoom_author_email(member.getMember_email());
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("keyword", room.getMember_dest_loc());
+			map.put("key", key);
+			map = schRoomList(map);
+			room.setRoom_lat(Double.valueOf(map.get("centerLat").toString()));
+			room.setRoom_lng(Double.valueOf(map.get("centerLng").toString()));
+			roomDao.updateRoom(room);
+			return num;
+		}else {
+			return null;
+		}
+	}
+	
+	public Integer setRoom(Room room, HttpSession session, String key) {
+		if(null != room && null != session && null != session.getAttribute("member")) {
+			Member member = (Member) session.getAttribute("member");
+			room.setRoom_author_email(member.getMember_email());
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("keyword", room.getMember_dest_loc());
+			map.put("key", key);
+			map = schRoomList(map);
+			room.setRoom_lat(Double.valueOf(map.get("centerLat").toString()));
+			room.setRoom_lng(Double.valueOf(map.get("centerLng").toString()));
+			roomDao.insertRoom(room);
+			return roomDao.dupChkRoom(room).get(0);
+		}else {
+			return null;
+		}
+	}
+	
 	public HashMap<String, Object> setLikesRoom(List<Integer> list) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		if(list.size() != 0) {
@@ -77,6 +173,22 @@ public class RoomService {
 		}else {
 			map.put("likesRoom", false);
 		}
+		return map;
+	}
+	
+	public HashMap<String, Object> setMyRoom(HttpSession session) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		Member member = (Member) session.getAttribute("member");
+		if(null != member) {
+			map.put("member_email", member.getMember_email());
+			map.put("setMyRoom", true);
+			List<Room> room = roomDao.selectRoom(map);
+			map.put("roomList", room);
+			map.put("roomImgList", roomDao.selectRoomImg(room));
+		}else {
+			map.put("roomList", null);
+		}
+		
 		return map;
 	}
 	
@@ -168,8 +280,30 @@ public class RoomService {
 		return roomDao.selectRoom(map);
 	} 
 	
-	public List<Room> filter(HashMap<String, Object> map) {
-		return roomDao.selectRoom(returnRangeHs(map));
+	public HashMap<String, Object> filter(MemberService memberService, HttpSession session, HashMap<String, Object> map) {
+		
+		List<Room> originList = roomDao.selectRoom(returnRangeHs(map));
+		List<Room> filterList = new ArrayList<Room>();
+		
+		if(null != originList) {
+			for(Room room : originList) {
+				if(room.getRoom_status().equals("1")) {
+					filterList.add(room);
+				}
+			}
+		}
+		
+		HashMap<String, Object> newhs = new HashMap<String, Object>();
+		
+		if(0 < filterList.size()) {
+			List<Integer> list = memberService.getLikeList(session);
+			newhs.put("likeList", list);
+			newhs.put("result", filterList);
+		}else {
+			newhs.put("result", null);
+		}
+		
+		return newhs;
 	}
 	
 	public HashMap<String, Integer> getMoneyRange(HashMap<String, Object> map) {
@@ -211,27 +345,34 @@ public class RoomService {
 		
 		if(map.containsKey("range")) {
 			String rangeString = map.get("range").toString();
+			
 			if(rangeString.contains("[")){
 				rangeString = rangeString.substring(1,rangeString.length()-1);
 			}
-			String[] rangeArr = rangeString.split(",");
-			rangeHs.put("rangeFilterRoom", true);
-			for(String ran : rangeArr) {
+			
+			if(!rangeString.equals("")) {
+				String[] rangeArr = rangeString.split(",");
 				
-				ran = ran.trim();
-				if(ran.equals("range1")) {
-					rangeHs.put("range1", true);
+				if(rangeArr.length > 0) {
+					rangeHs.put("rangeFilterRoom", true);
+					for(String ran : rangeArr) {
+						ran = ran.trim();
+						if(ran.equals("range1")) {
+							rangeHs.put("range1", true);
+						}
+						if(ran.equals("range2")) {
+							rangeHs.put("range2", true);
+						}
+						if(ran.equals("range3")) {
+							rangeHs.put("range3", true);
+						}
+						if(ran.equals("range4")) {
+							rangeHs.put("range4", true);
+						}
+					}
 				}
-				if(ran.equals("range2")) {
-					rangeHs.put("range2", true);
-				}
-				if(ran.equals("range3")) {
-					rangeHs.put("range3", true);
-				}
-				if(ran.equals("range4")) {
-					rangeHs.put("range4", true);
-				}
-				
+			}else {
+				rangeHs.put("orderDistance", true);
 			}
 			
 			if(sellStr.equals("select1")) {
@@ -263,12 +404,14 @@ public class RoomService {
 		}
 		
 		if(null != keywordMap && keywordMap.containsKey("keywordSch")) {
+			@SuppressWarnings("unchecked")
 			List<String> keyList = (List<String>) keywordMap.get("list");
-			if(keyList.size() >0) {
+			if(keyList.size() > 0) {
 				rangeHs.put("keywordSch", true);
 				rangeHs.put("list", keywordMap.get("list"));
 			}
 		}
+		
 		if(sellStr.equals("select1")) {
 			rangeHs.put("select1", true);
 		}else if(sellStr.equals("select2")) {
@@ -289,7 +432,7 @@ public class RoomService {
 		
 		
 		HashMap<String, Object> fastRoot = new HashMap<String, Object>();
-			
+		System.out.println(myUrl);
 		JsonObject je = openJsonObject(myUrl, true);
 		JsonObject routesHs = parsingArrHs(parsingHsArr(je, "routes"), 0); //3번 legs. polyline 있는 hashmap
 		
@@ -356,9 +499,69 @@ public class RoomService {
 		return fastRoot;
 	}
 	
+    public void lessorSocket(HttpSession session, Integer number) {
+    	Member member = null;
+    	if(null != session && null != session.getAttribute("member")) {
+    		member = (Member) session.getAttribute("member");
+	    	ServerSocket server;
+	    	Socket s;
+	    	BufferedReader br;
+	    	
+	    	try {
+	    	    server = new ServerSocket(60000 + member.getMember_number());
+	    	    System.out.println("Server Ready........");
+	    			
+	    	    lesseeSocket(member, number);
+	    	    
+	    	    s = server.accept();
+	    	    System.out.println("Client Socket...Returning...");
+	    			
+	                // System.in은 Local이었다면 소켓으로부터 리턴받은 스트림은 외부
+	    	    br = new BufferedReader(new InputStreamReader(s.getInputStream())); 
+	    			
+	                //클라이언트가 던지는 걸 읽는다
+	    	    String line = null;
+	    	    while((line = br.readLine())!=null) {
+	    		System.out.println("Client가 보낸 메세지 " + line);
+	    	    }
+	    	    br.close();
+	    	}catch(Exception e) {
+	    		e.printStackTrace();
+	    	    System.out.println("Client와의 연결이 끊어졌습니다..");
+	    	}
+    	}
+    }
+    
+    public void lesseeSocket(Member member, Integer number) {
+		Socket s;
+		PrintWriter pw;
+		
+		try {
+			s = new Socket("127.0.0.1", 60000 + member.getMember_number());
+			System.out.println("Client Socket Creating....^^");
+			
+			pw = new PrintWriter(s.getOutputStream(), true); //auto flush
+			
+			System.out.println("Client stream Creating....^^");
+			
+			String line = "reserve," + number.toString();
+			pw.println(line);
+		
+		}catch(Exception e) {
+			e.printStackTrace();
+			System.out.println("서버와의 연결에 실패했습니다...");
+		}
+    }
+	
 	
 	public List<Room> getRoomNumber(HashMap<String, Object> points) {
 		return returnRoom(points);
+	}
+	
+	public Room changeSellingType(int num) {
+		Integer i = roomDao.changeSellingType(num);
+		System.out.println(i);
+		return roomDetail(num);
 	}
 	
 	public Room roomDetail(int num) {
@@ -368,7 +571,7 @@ public class RoomService {
 		return roomDao.selectRoom(map).get(0);
 	}
 	
-	public Model returnRoomDetail(int num, Model model, HttpSession session, MemberService memberService) {
+	public Model returnRoomDetail(int num, Model model, HttpSession session, MemberService memberService) throws UnsupportedEncodingException {
 		roomDao.addRoomHits(num);
 		Room room = roomDetail(num);
 		
@@ -381,15 +584,34 @@ public class RoomService {
 		}
 		
 		model.addAttribute("room", room);
-		model.addAttribute("roomUrl", roomImgUrl(room));
+		
+		if(null != room.getRoom_img_url()) {
+			model.addAttribute("roomUrl", roomImgUrl(room));
+		}else {
+			List<RoomImg> roomImgList = roomDao.selectOneRoomImg(room.getRoom_number());
+			model.addAttribute("roomImgList", returnRoomImgStr(roomImgList));
+		}
 		model.addAttribute("roomKeyword", roomKeyword(room));
 		model.addAttribute("roomOption", roomOption(room));
 		
 		return model;
 	}
 	
+	public Boolean deleteMyRoom(Integer num) {
+		Integer result = roomDao.deleteMyRoom(num);
+		if(result > 0) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
 	public void countRoomLikes(HashMap<String, Object> likesMap) {
 		roomDao.countRoomLikes(likesMap);
+	}
+	
+	public String getRoomImg(List<RoomImg> roomImg) throws UnsupportedEncodingException {
+		return roomImg.get(0).getRoom_img();
 	}
 	
 	public String[] roomImgUrl(Room room) {

@@ -78,7 +78,9 @@ function initMap(){
 			data : JSON.stringify(arr),
 			contentType : "application/json"
 		  }).done(function(){
-		  	getFastRoot();
+		  	if(typeof room_lat == "string"){
+			  	getFastRoot();
+		  	}
 		  	map.fitBounds (circle.getBounds ());
 		  })
 	}

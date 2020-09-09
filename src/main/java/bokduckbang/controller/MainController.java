@@ -1,7 +1,12 @@
 package bokduckbang.controller;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.json.simple.parser.ParseException;
@@ -44,6 +49,17 @@ public class MainController {
 	public String input() {
 		return "input";
 	}
+	
+	@RequestMapping("/myHandler")
+	public String chat() {
+		return "room/NewFile";
+	}
+	
+	@RequestMapping("/chat2")
+	@ResponseBody
+	public String sender(HttpServletRequest request, HttpServletResponse response, Model model) {
+        return "room/NewFile";
+    }
 	
 	@RequestMapping("/insert")
 	@ResponseBody
@@ -145,13 +161,60 @@ public class MainController {
 		return memberService.sendMailPw(map);
 	}
 	
+	@RequestMapping("/write-my-room")
+	public String writeMyRoom() {
+		if(null != session && null != session.getAttribute("member")) {
+			return "room/write-my-room";
+		}else {
+			return "member/login";
+		}
+	}
+	
+	@RequestMapping("/update-my-room")
+	@ResponseBody
+	public Integer updateMyRoom(Room room, @RequestParam Integer num) throws ParseException {
+		return roomService.updateRoom(room, session, commonService.getMyKey(), num);
+	}
+	
+	@RequestMapping("/add-my-room")
+	@ResponseBody
+	public Integer addMyRoom(Room room) throws ParseException {
+		return roomService.setRoom(room, session, commonService.getMyKey());
+	}
+	
+	@RequestMapping("/add-my-room-img")
+	@ResponseBody
+	public Boolean addMyRoomImg(@RequestBody HashMap<String, Object> map) throws IOException {
+		return roomService.BooleanMyRoomImg(map);
+	}
+	
+	@RequestMapping("/my-room-list")
+	public String myRoomList() {
+		return "room/my-room-list";
+	}
+	
+	@RequestMapping("/stop-selling-my-room")
+	@ResponseBody
+	public Room stopSellingMyRoom(@RequestParam Integer num) {
+		return roomService.changeSellingType(num);
+	}
+	
+	@RequestMapping("/set-my-room")
+	@ResponseBody
+	public HashMap<String, Object> setMyRoom() {
+		HashMap<String, Object> map = roomService.setMyRoom(session);
+		return map;
+	}
+	
 	@RequestMapping("/businessLicenseChecker")
 	@ResponseBody
 	public HashMap<String, String> businessLicenseChecker(@RequestBody HashMap<String, String> licenseMap) {
 		Boolean chk = memberService.businessLicenseChecker(licenseMap);
 		if(chk) {
+			licenseMap.put("rst", "true");
 			licenseMap.put("chkResult", "사용 가능한 사업자 번호입니다");
 		}else {
+			licenseMap.put("rst", "false");
 			licenseMap.put("chkResult", "이미 존재하는 사업자 번호입니다");
 		}
 		return licenseMap;
@@ -180,10 +243,27 @@ public class MainController {
 	}
 	
 	@RequestMapping("/room-detail")
-	public String roomDetail(Model model, @RequestParam int num) throws ParseException {
+	public String roomDetail(Model model, @RequestParam int num) throws ParseException, UnsupportedEncodingException {
 		model.addAttribute("key", commonService.getMyKey());
 		roomService.returnRoomDetail(num, model, session, memberService);
 		return "room/room-detail";
+	}
+
+	@RequestMapping("/edit-my-room")
+	public String editMyRoom(@RequestParam Integer roomNumber, Model model) throws IOException {
+		roomService.editMyRoom(roomNumber, model);
+		return "room/write-my-room";
+	}
+	
+	@RequestMapping("/room-reserve")
+	public String roomReserve(HttpSession session, @RequestParam Integer number) throws ParseException {
+		roomService.lessorSocket(session, number);
+		return "room/room-detail";
+	}
+	
+	@RequestMapping("/my-room-reservation")
+	public String myRoomReservationList(){
+		return "room/my-room-reservation";
 	}
 	
 	@RequestMapping("/room-likes")
@@ -192,6 +272,11 @@ public class MainController {
 		return memberService.makeLikes(session, map, roomService);
 	}
 	
+	@RequestMapping("/room-delete")
+	@ResponseBody
+	public Boolean roomDelete(Integer num) throws ParseException {
+		return roomService.deleteMyRoom(num);
+	}
 	
 	@RequestMapping("/room-position")
 	@ResponseBody
@@ -214,17 +299,7 @@ public class MainController {
 	@RequestMapping("/filter")
 	@ResponseBody
 	public HashMap<String, Object> filter(@RequestBody HashMap<String, Object> filter) throws ParseException {
-		List<Room> rooms = roomService.filter(filter);
-		HashMap<String, Object> newhs = new HashMap<String, Object>();
-		if(rooms != null) {
-			List<Integer> list = memberService.getLikeList(session);
-			newhs.put("likeList", list);
-			newhs.put("result", rooms);
-			return newhs;
-		}else {
-			newhs.put("result", null);
-			return newhs;
-		}
+		return roomService.filter(memberService, session, filter);
 	}
 	
 	

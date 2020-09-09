@@ -1,6 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="bokduckbang.member.Member" %>
+<%@ page import="bokduckbang.member.MemberLessee" %>
+<% 
+	Member member = (Member)session.getAttribute("member");
+	if(null != member && member.getMember_type().equals("1")){
+		MemberLessee memberLessee = (MemberLessee) session.getAttribute("memberInfo");
+		request.setAttribute("room_lat", memberLessee.getMember_dest_lat());
+		request.setAttribute("room_lng", memberLessee.getMember_dest_lng());
+	}
+%>
 <jsp:include page="../include/header.jsp" flush="false" />
 <link rel="stylesheet" href="assets/css/search-room-style.css" />
 
@@ -41,10 +51,15 @@
 	</section>
 	<!--visual end -->
 </div>
-
 <script>
-  var memberChk = null ;
-  memberChk = "<%= session.getAttribute("member") %>" ;
+	var memberChk = "${sessionScope.member.member_type}" ;
+	var room_lat = "",
+		room_lng = "";
+
+	if(memberChk == 1){
+		room_lat = "${room_lat}";
+		room_lng = "${room_lng}";
+	}
 </script>
 
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>

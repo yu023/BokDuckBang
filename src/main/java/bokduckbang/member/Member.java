@@ -1,9 +1,16 @@
 package bokduckbang.member;
 
 public class Member {
+	private Integer member_number;
 	private String member_email;
 	private String member_type;
 	private String member_create_date;
+	public Integer getMember_number() {
+		return member_number;
+	}
+	public void setMember_number(Integer member_number) {
+		this.member_number = member_number;
+	}
 	public String getMember_email() {
 		return member_email;
 	}

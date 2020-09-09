@@ -200,6 +200,7 @@ public class MemberService {
 				}
 			}else {
 				session.setAttribute("member", checker.get("member"));
+				session.setAttribute("memberInfo", getMyInfo(session));
 				uri = "/index";
 			}
 		}else {
@@ -248,7 +249,7 @@ public class MemberService {
 	
 	public List<Integer> getLikeList(HttpSession session) {
 		List<Integer> list = null;
-		if(session != null && null != session.getAttribute("member")) {
+		if(null != session && null != session.getAttribute("member")) {
 			Member member = (Member)session.getAttribute("member");
 			list = memberDao.getLikes(member.getMember_email());
 		}

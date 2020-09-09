@@ -43,8 +43,10 @@ public class Room {
 	private int room_lease_num;
 	private int room_monthly_rent_num;
 	
-	private String room_number;
+	private Integer room_number;
 	private String room_img_url;
+	
+	private String member_dest_loc;
 	
 	public String getRoom_selling_type() {
 		return room_selling_type;
@@ -114,7 +116,7 @@ public class Room {
 	}
 	public void setRoom_type(Integer room_type) {
 		if(room_type == 0) {
-			setRoom_type_str("원룸");
+			setRoom_type_str("원룸/1.5룸");
 		}else if(room_type == 1) {
 			setRoom_type_str("투룸");
 		}else if(room_type == 2) {
@@ -276,10 +278,10 @@ public class Room {
 		this.room_monthly_rent_num = room_monthly_rent_num;
 	}
 	
-	public String getRoom_number() {
+	public Integer getRoom_number() {
 		return room_number;
 	}
-	public void setRoom_number(String room_number) {
+	public void setRoom_number(Integer room_number) {
 		this.room_number = room_number;
 	}
 	public String getRoom_img_url() {
@@ -287,6 +289,13 @@ public class Room {
 	}
 	public void setRoom_img_url(String room_img_url) {
 		this.room_img_url = room_img_url;
+	}
+	
+	public String getMember_dest_loc() {
+		return member_dest_loc;
+	}
+	public void setMember_dest_loc(String member_dest_loc) {
+		this.member_dest_loc = member_dest_loc;
 	}
 
 }

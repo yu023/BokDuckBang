@@ -2,9 +2,19 @@
 	pageEncoding="UTF-8"%>
 <jsp:include page="../include/header.jsp" flush="false" />
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %> 
 <link rel="stylesheet" href="assets/css/room-detail-style.css" />
 <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
-
+<%@ page import="bokduckbang.member.Member" %>
+<%@ page import="bokduckbang.member.MemberLessee" %>
+<% 
+	Member member = (Member)session.getAttribute("member");
+	if(null != member && member.getMember_type().equals("1")){
+		MemberLessee memberLessee = (MemberLessee) session.getAttribute("memberInfo");
+		request.setAttribute("room_lat", memberLessee.getMember_dest_lat());
+		request.setAttribute("room_lng", memberLessee.getMember_dest_lng());
+	}
+%>
 <div class="sub-container">
 	<section class="container">
 		<!-- testemonial Start -->
@@ -19,19 +29,34 @@
 					</c:if>
 				</c:if>
 				<div class="owl-carousel owl-theme" id="room-gallery-carousel">
-					
-					<c:forEach var="room" items="${roomUrl}">
-						<div class="home1-testm item">
-							<div class="home1-testm-single text-center">
-								<div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/${room})" class="thumb"></div>
-							</div><!--/.home1-testm-single-->
-						</div><!--/.item-->
-					</c:forEach>
+					<c:if test="${null ne roomUrl}">
+						<c:forEach var="room" items="${roomUrl}">
+							<div class="home1-testm item">
+								<div class="home1-testm-single text-center">
+									<div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/${room})" class="thumb"></div>
+								</div><!--/.home1-testm-single-->
+							</div><!--/.item-->
+						</c:forEach>
+					</c:if>
+					<c:if test="${null ne roomImgList}">
+						<c:forEach var="room" items="${roomImgList}">
+							<div class="home1-testm item">
+								<div class="home1-testm-single text-center">
+									<div style="background-image: url('${room}')" class="thumb"></div>
+								</div><!--/.home1-testm-single-->
+							</div><!--/.item-->
+						</c:forEach>
+					</c:if>
 					
 				</div><!--/.visual-->
 			</div><!--/.top-->
 			
 			<div class="room-detail-bottom count-box">
+				<c:if test="${sessionScope.member.member_type eq 1}">
+					<div class="mt40 mb25 tar button">
+						<a class="tac keybg" onclick="javascript:reserveRoom(${room.room_number});">방 예약하기</a>
+					</div>
+				</c:if>
 				<div class="detail-script table common-div-padding">
 					<dl class="tableCell col-md-7 fn vm">
 						<dt>${room.room_title}</dt>
@@ -138,27 +163,49 @@
 							<div class="card">
 								<h3 class="text-sub-title tac mb20">옵션</h3>
 								<ul>
-									<c:if test="${roomOption eq ''}">
+									<c:if test="${null eq roomOption || fn:length(roomOption) > 0}">
 										<c:forEach var="option" items="${roomOption}">
 											<li>${option}</li>
 										</c:forEach>
 									</c:if>
-									<c:if test="${roomOption ne ''}">
+									<c:if test="${null ne roomOption || fn:length(roomOption) eq 0}">
 										<li>해당사항 없음</li>
 									</c:if>
 								</ul>
 							</div>
 						</div>
 						<div class="col-md-8">
-							<div id="map">map에는 최소한 지하철역, 버스정류장이 들어가야 하고 추가적으로는 은행, 관공서, 편의점</div>
-							<dl class="mb00 mt30">
-								<dt class="mb10">주소</dt>
-								<dd class="mb20">${room.room_address}</dd>
-								<dt class="mb10">가는 길</dt>
-							</dl>
-							<dl id="route-dl">
-								<dd>대중교통 1번 탑승 후 10분 어쩌고</dd>
-							</dl>
+							<div id="map"></div>
+							<c:if test="${sessionScope.member.member_type eq 1}">
+								<dl class="mb00 mt30">
+									<dt class="mb10">주소</dt>
+									<dd class="mb20">${room.room_address}</dd>
+									<dt class="mb10">가는 길</dt>
+								</dl>
+								<dl id="route-dl">
+									<dd></dd>
+								</dl>
+							</c:if>
+							<c:if test="${sessionScope.member.member_type eq 0}">
+								<div class="tar mt30 sellingType">판매상태 : 
+									<c:if test="${room.room_status eq 1}">
+										<span>판매중</span>
+									</c:if>
+									<c:if test="${room.room_status eq 0}">
+										<span class="colorred">판매중지</span>
+									</c:if>
+								</div>
+								<div class="button tar mt20">
+									<a class="bgGray tac" href="${root}/edit-my-room?roomNumber=${room.room_number}">방 수정하기</a>
+									<a class="bgGray ml10 mr10 tac" onclick="javascript:deleteMyRoom(${room.room_number});">방 삭제하기</a>
+									<c:if test="${room.room_status eq 1}">
+										<a class="bgGray tac sellingBtn" onclick="javascript:stopSellingMyRoom(${room.room_number});">방 판매중지하기</a>
+									</c:if>
+									<c:if test="${room.room_status eq 0}">
+										<a class="bgGray tac sellingBtn" onclick="javascript:stopSellingMyRoom(${room.room_number});">방 판매재개하기</a>
+									</c:if>
+								</div>
+							</c:if>
 						</div>
 					</div>
 				</div>
@@ -185,6 +232,12 @@
 <script>
 	var myLatlng = {lat: ${room.room_lat}, lng: ${room.room_lng}};
 	var companyLatlng = {lat: 37.516349, lng: 127.019931};
+	var memberChk = "${sessionScope.member.member_type}" ;
+	var room_lat, room_lng;
+	if(memberChk == 1){
+		room_lat = "${room_lat}";
+		room_lng = "${room_lng}";
+	}
 </script>
 
 <script src="assets/js/map/detail-room-map.js"></script>

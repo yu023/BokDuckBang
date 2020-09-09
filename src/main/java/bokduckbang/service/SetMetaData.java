@@ -11,7 +11,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -61,7 +60,7 @@ public List<String> getRoomId(HashMap<String, Object> map) {
 			Connection con = Jsoup.connect(url).userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.21 (KHTML, like Gecko) Chrome/19.0.1042.0 Safari/535.21");
 			con.timeout(180000).ignoreHttpErrors(true).followRedirects(true);
 			try {
-				Response resp = con.execute();
+				con.execute();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -72,7 +71,7 @@ public List<String> getRoomId(HashMap<String, Object> map) {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			//select를 이용하여 원하는 태그를 선택한다. select는 원하는 값을 가져오기 위한 중요한 기능이다.
+			
 			String str = doc.select("body").toString();
 			str = str.substring(8, str.length()-7);
 
@@ -169,7 +168,7 @@ public List<String> getRoomId(HashMap<String, Object> map) {
 				room.setRoom_ho("");
 			}
 			
-			if(0 == roomDao.dupChkRoom(room)) {
+			if(0 == roomDao.dupChkRoom(room).size()) {
 				roomDao.insertRoom(room);
 			}else {
 				System.out.println(count + "번째 실패");

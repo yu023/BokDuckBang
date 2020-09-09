@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import bokduckbang.room.Room;
+import bokduckbang.room.RoomImg;
 import bokduckbang.room.MinMax;
 
 @Repository
@@ -22,13 +23,53 @@ public class RoomDao {
 		sqlSession.insert("RoomMapper.roomInsert", room);
 	}
 	
-	public int dupChkRoom(Room room) {
-		List<Room> obj = sqlSession.selectList("RoomMapper.dupChkRoom", room);
+	public Integer insertRoomImg(HashMap<String, Object> map) {
+		return sqlSession.insert("RoomMapper.insertRoomImg", map);
+	}
+
+	public void updateRoom(Room room) {
+		sqlSession.update("RoomMapper.roomUpdate", room);
+	}
+	
+	public List<Integer> dupChkRoom(Room room) {
+		List<Integer> obj = sqlSession.selectList("RoomMapper.dupChkRoom", room);
 		if(obj.size() == 0) {
-			return 0;
+			return null;
 		}else {
-			return 1;
+			return obj;
 		}
+	}
+	
+	public List<RoomImg> selectOneRoomImg(Integer roomNum) {
+		List<RoomImg> obj = sqlSession.selectList("RoomMapper.selectOneRoomImg", roomNum);
+		if(obj.size() == 0) {
+			return null;
+		}else {
+			return obj;
+		}
+	}
+	
+	public List<RoomImg> selectRoomImg(List<Room> room) {
+		List<RoomImg> obj = sqlSession.selectList("RoomMapper.selectRoomImg", room);
+		if(obj.size() == 0) {
+			return null;
+		}else {
+			return obj;
+		}
+	}
+	
+	public Integer deleteMyRoom(Integer num) {
+		Integer deleteMyRoom =  sqlSession.delete("RoomMapper.deleteMyRoom", num);
+		Integer deleteMyRoomImg =  sqlSession.delete("RoomMapper.deleteMyRoomImg", num);
+		return deleteMyRoom + deleteMyRoomImg;
+	}
+	
+	public Integer deleteMyRoomImg(Integer num) {
+		return sqlSession.delete("RoomMapper.deleteMyRoomImg", num);
+	}
+	
+	public Integer changeSellingType(Integer i) {
+		return sqlSession.update("RoomMapper.changeSellingType", i);
 	}
 	
 	public Integer addRoomHits(Integer i) {

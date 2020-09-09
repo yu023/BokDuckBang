@@ -184,7 +184,8 @@
   </select>
   <select id="checkMember" parameterType="bokduckbang.member.CheckMember" resultType="bokduckbang.member.Member">
   	select
-  	member_email
+  	member_number
+	,member_email
 	,member_password
 	,member_type
 	,member_create_date
