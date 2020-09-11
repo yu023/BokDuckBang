@@ -56,13 +56,6 @@ function deleteMyRoom(number){
 	}
 }
 
-function reserveRoom(number){
-	$.ajax({
-		url : 'room-reserve?number=' + number,
-		method : 'post'
-	}).done(function(){
-	})
-}
 
 $(document).ready(function(){
 	$('.room-detail-top').on('click', '.like', function() {

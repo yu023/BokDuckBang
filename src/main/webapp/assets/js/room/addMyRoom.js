@@ -153,9 +153,7 @@ function myRoomImg(){
        data: JSON.stringify(myFileList),
        contentType : 'application/json',
        success: function(result){  
-       	   var imgList = result.jesus;
-       	   console.log(imgList);
-       	   $("#preview").append("<img alt='img' src='" + imgList[0].room_img + "'/>");
+       	   console.log("성공");
        },
 	   error:function(request,status,error){
 	    	console.log("code = "+ request.status + " message = " + request.responseText + " error = " + error);

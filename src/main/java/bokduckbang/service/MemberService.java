@@ -2,6 +2,7 @@ package bokduckbang.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.mail.Message;
 import javax.mail.Session;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.WebSocketSession;
 
 import bokduckbang.dao.MemberDao;
 import bokduckbang.member.CheckMember;
@@ -64,10 +66,21 @@ public class MemberService {
 		String uri = "member/join-finish";
 		
 		if(null != session && null != session.getAttribute("member")) {
+			
+			HashMap<String, Object> searchLoc = new HashMap<String, Object>();
+			searchLoc.put("keyword", lessee.getMember_dest_loc());
+			searchLoc.put("key", key);
+			searchLoc = roomService.schRoomList(searchLoc);
+			lessee.setMember_dest_lat((Double)searchLoc.get("centerLat"));
+			lessee.setMember_dest_lng((Double)searchLoc.get("centerLng"));
+
 			HashMap<String, String> memberMap = new HashMap<String, String>();
 			memberMap.put("member_email",lessee.getMember_email());
 			memberMap.put("member_password",lessee.getMember_password());
+			
 			memberDao.updateMemberLessee(lessee, memberMap);
+			session.setAttribute("memberInfo", getMyInfo(session));
+
 			uri = "member/edit-finish";
 		}else {
 			lesseeInsert(lessee, roomService, key);
@@ -77,13 +90,12 @@ public class MemberService {
 	
 	public String editLessorInfo(MemberLessor lessor, RoomService roomService, String key, HttpSession session) {
 		String uri = "member/join-finish";
-		System.out.println("session : " + session);
-		System.out.println("session.getAttribute(\"member\") : " + session.getAttribute("member"));
 		if(null != session && null != session.getAttribute("member")) {
 			HashMap<String, String> memberMap = new HashMap<String, String>();
 			memberMap.put("member_email",lessor.getMember_email());
 			memberMap.put("member_password",lessor.getMember_password());
 			memberDao.updateMemberLessor(lessor, memberMap);
+			session.setAttribute("memberInfo", getMyInfo(session));
 			uri = "member/edit-finish";
 		}else {
 			lessorInsert(lessor);
@@ -208,6 +220,11 @@ public class MemberService {
 			uri = "member/login";
 		}
 		return uri;
+	}
+	
+	public Member returnMember(WebSocketSession session) {
+		Map<String, Object> map = session.getAttributes();
+		return (Member) map.get("member");
 	}
 	
 	public Boolean businessLicenseChecker(HashMap<String, String> map) {

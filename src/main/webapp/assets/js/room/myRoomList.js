@@ -33,10 +33,8 @@ function makeList(map){
     clickPrevNum = -1;
     
 	var locations = [];
-	var myNum = [];
 	var roomList = {};
-	var title;
-	var defaultNum = 0;
+	var title, keyNum;
 	
 	imgSearchCancelLoops:
 	for(var i = 0; i < result.length; i++){
@@ -74,15 +72,15 @@ function makeList(map){
 		}else{
 			if("undefined" != typeof imgResult){
 				for(var j = 0; j < imgResult.length; j++){
-					myNum.push(imgResult[j].room_img_number);
-					roomList[myNum[j]] = imgResult[j].room_img;
+					imgResult[j].room_img_number
+					roomList[imgResult[j].room_img_number] = imgResult[j].room_img_str;
 				}
 			}
-			var setArr = Array.from(new Set(myNum));
-			$("#room-list").append('<li class="col-md-3 room' + setArr[defaultNum] + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + setArr[defaultNum] + '"><div class="thumb"><img src="' + roomList[setArr[defaultNum]] + '"/></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + setArr[defaultNum] + '">'+ title + '</a></p></div><p><a class="block" href="room-detail?num=' + setArr[defaultNum] + '">' + keytitle + '</a></p></div></div></li>');
-			defaultNum ++;
+			keyNum = Object.keys(roomList).reverse();
+			var myNum = keyNum[i];
+			$("#room-list").append('<li class="col-md-3 room' + myNum + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + myNum + '"><div class="thumb"><img src="' + roomList[myNum] + '"/></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + myNum + '">'+ title + '</a></p></div><p><a class="block" href="room-detail?num=' + myNum + '">' + keytitle + '</a></p></div></div></li>');
+			
 		}
-		
 	
 	}
 	

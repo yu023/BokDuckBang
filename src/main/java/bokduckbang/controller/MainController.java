@@ -22,6 +22,7 @@ import bokduckbang.member.CheckMember;
 import bokduckbang.member.MemberLessee;
 import bokduckbang.member.MemberLessor;
 import bokduckbang.room.Room;
+import bokduckbang.room.RoomReserve;
 import bokduckbang.service.CommonService;
 import bokduckbang.service.MemberService;
 import bokduckbang.service.RoomService;
@@ -49,17 +50,7 @@ public class MainController {
 	public String input() {
 		return "input";
 	}
-	
-	@RequestMapping("/myHandler")
-	public String chat() {
-		return "room/NewFile";
-	}
-	
-	@RequestMapping("/chat2")
-	@ResponseBody
-	public String sender(HttpServletRequest request, HttpServletResponse response, Model model) {
-        return "room/NewFile";
-    }
+
 	
 	@RequestMapping("/insert")
 	@ResponseBody
@@ -170,6 +161,13 @@ public class MainController {
 		}
 	}
 	
+	@RequestMapping("/my-webSocket-list")
+	@ResponseBody
+	public String myWebSocketList(HttpSession session, @RequestBody HashMap<String,Object> map) throws ParseException {
+//		return roomService.checkReserveDetailRoom(session, map);
+		return "메롱";
+	}
+	
 	@RequestMapping("/update-my-room")
 	@ResponseBody
 	public Integer updateMyRoom(Room room, @RequestParam Integer num) throws ParseException {
@@ -201,7 +199,7 @@ public class MainController {
 	
 	@RequestMapping("/set-my-room")
 	@ResponseBody
-	public HashMap<String, Object> setMyRoom() {
+	public HashMap<String, Object> setMyRoom() throws UnsupportedEncodingException {
 		HashMap<String, Object> map = roomService.setMyRoom(session);
 		return map;
 	}
@@ -253,12 +251,6 @@ public class MainController {
 	public String editMyRoom(@RequestParam Integer roomNumber, Model model) throws IOException {
 		roomService.editMyRoom(roomNumber, model);
 		return "room/write-my-room";
-	}
-	
-	@RequestMapping("/room-reserve")
-	public String roomReserve(HttpSession session, @RequestParam Integer number) throws ParseException {
-		roomService.lessorSocket(session, number);
-		return "room/room-detail";
 	}
 	
 	@RequestMapping("/my-room-reservation")

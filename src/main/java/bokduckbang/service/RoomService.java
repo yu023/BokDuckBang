@@ -16,10 +16,13 @@ import java.util.List;
 
 import javax.servlet.http.HttpSession;
 
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -29,15 +32,21 @@ import bokduckbang.member.Member;
 import bokduckbang.room.MinMax;
 import bokduckbang.room.Room;
 import bokduckbang.room.RoomImg;
+import bokduckbang.room.RoomReserve;
 
 @Service
 public class RoomService {
+	
+	@Autowired
+	RoomReserve roomReserve;
 	
 	@Autowired
 	RoomDao roomDao;
 	
 	@Autowired
 	SetMetaData getRoomLocationService;
+	
+	static Gson gson = new Gson();
 	
 	static HashMap<String, Object> BestFastRoot = new HashMap<String, Object>();
 	public static int maxM = 0;
@@ -84,9 +93,12 @@ public class RoomService {
 	public Boolean BooleanMyRoomImg(HashMap<String, Object> map) throws IOException {
 		Boolean result = null;
 		if(map.containsKey("files")) {
-			roomDao.deleteMyRoomImg(Integer.valueOf(map.get("roomNumber").toString()));
+			Integer i = Double.valueOf(map.get("roomNumber").toString()).intValue();
+			System.out.println(i);
+			roomDao.deleteMyRoomImg(i);
 			result = insertMyRoomImg(map);
 		}
+		System.out.println(result);
 		return result;
 	}
 	
@@ -109,6 +121,40 @@ public class RoomService {
 		}else {
 			return false;
 		}
+	}
+	
+	public RoomReserve reserveRoom(HashMap<String, Object> map) throws ParseException {
+		
+		Integer result = 0;
+		
+		if(map.containsKey("val")) {
+			result = roomDao.insertRoomReserve(map);
+		}
+		
+		if(result > 0 ) {
+			return roomDao.selectMyReserveDetail(map);
+		}else {
+			return null;
+		}
+	}
+	
+	public List<RoomReserve> checkReserveDetailRoom(HttpSession session, HashMap<String, Object> myWebSocketList) {
+		Member member = (Member) session.getAttribute("member");
+		myWebSocketList.put("member_type", member.getMember_type());
+		return roomDao.selectMyReserveRoom(myWebSocketList);
+	}
+	
+	public List<RoomReserve> returnReserveList(Member member, Integer roomNumber) {
+		HashMap<String, Object> reserveMap = new HashMap<String, Object>();
+		reserveMap.put("member_email", member.getMember_email());
+		reserveMap.put("member_type", member.getMember_type());
+
+		if(null != roomNumber) {
+			reserveMap.put("member_email", member.getMember_email());
+			reserveMap.put("room_number", roomNumber);
+		}
+		
+		return roomDao.selectMyReserveRoom(reserveMap);
 	}
 	
 	public Model editMyRoom(Integer roomNumber, Model model) throws UnsupportedEncodingException {
@@ -176,7 +222,7 @@ public class RoomService {
 		return map;
 	}
 	
-	public HashMap<String, Object> setMyRoom(HttpSession session) {
+	public HashMap<String, Object> setMyRoom(HttpSession session) throws UnsupportedEncodingException {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		Member member = (Member) session.getAttribute("member");
 		if(null != member) {
@@ -184,7 +230,11 @@ public class RoomService {
 			map.put("setMyRoom", true);
 			List<Room> room = roomDao.selectRoom(map);
 			map.put("roomList", room);
-			map.put("roomImgList", roomDao.selectRoomImg(room));
+			List<RoomImg> rl = roomDao.selectRoomImg(room);
+			for(int i = 0; i < rl.size(); i++) {
+				rl.get(i).setRoom_img_str(rl.get(i).getRoom_img());
+			}
+			map.put("roomImgList", rl);
 		}else {
 			map.put("roomList", null);
 		}
@@ -193,7 +243,6 @@ public class RoomService {
 	}
 	
 	public HashMap<String, Object> schRoomList(HashMap<String, Object> keyword) {
-		System.out.println(keyword);
 		String ky = keyword.get("keyword").toString();
 		String myUrl = "";
 		try {
@@ -499,60 +548,6 @@ public class RoomService {
 		return fastRoot;
 	}
 	
-    public void lessorSocket(HttpSession session, Integer number) {
-    	Member member = null;
-    	if(null != session && null != session.getAttribute("member")) {
-    		member = (Member) session.getAttribute("member");
-	    	ServerSocket server;
-	    	Socket s;
-	    	BufferedReader br;
-	    	
-	    	try {
-	    	    server = new ServerSocket(60000 + member.getMember_number());
-	    	    System.out.println("Server Ready........");
-	    			
-	    	    lesseeSocket(member, number);
-	    	    
-	    	    s = server.accept();
-	    	    System.out.println("Client Socket...Returning...");
-	    			
-	                // System.in은 Local이었다면 소켓으로부터 리턴받은 스트림은 외부
-	    	    br = new BufferedReader(new InputStreamReader(s.getInputStream())); 
-	    			
-	                //클라이언트가 던지는 걸 읽는다
-	    	    String line = null;
-	    	    while((line = br.readLine())!=null) {
-	    		System.out.println("Client가 보낸 메세지 " + line);
-	    	    }
-	    	    br.close();
-	    	}catch(Exception e) {
-	    		e.printStackTrace();
-	    	    System.out.println("Client와의 연결이 끊어졌습니다..");
-	    	}
-    	}
-    }
-    
-    public void lesseeSocket(Member member, Integer number) {
-		Socket s;
-		PrintWriter pw;
-		
-		try {
-			s = new Socket("127.0.0.1", 60000 + member.getMember_number());
-			System.out.println("Client Socket Creating....^^");
-			
-			pw = new PrintWriter(s.getOutputStream(), true); //auto flush
-			
-			System.out.println("Client stream Creating....^^");
-			
-			String line = "reserve," + number.toString();
-			pw.println(line);
-		
-		}catch(Exception e) {
-			e.printStackTrace();
-			System.out.println("서버와의 연결에 실패했습니다...");
-		}
-    }
-	
 	
 	public List<Room> getRoomNumber(HashMap<String, Object> points) {
 		return returnRoom(points);
@@ -668,7 +663,38 @@ public class RoomService {
 		
 	}
 	
-
+	public RoomReserve updateRoomReserve(HashMap<String, Object> map) throws ParseException {
+		RoomReserve roomReserve = null;
+		if(map.containsKey("val") && !map.get("val").equals("null")) {
+			Integer result = roomDao.updateMyReserveRoom(map);
+			if(result > 0) {
+				roomReserve = roomDao.selectMyReserveStatus(map);
+			}
+		}
+		return roomReserve;
+	}
+	
+	public String roomReserveParser(List<RoomReserve> list) {
+		String myRoomJson = "";
+		if(null != list) {
+			for(RoomReserve myRoom : list) {
+				String str = gson.toJson(myRoom);
+				str = str.substring(1, str.length()-1);
+				myRoomJson += "/" + str;
+			}
+		}
+		return myRoomJson;
+	}
+	
+	public String ObjJsonParser(Object obj) {
+		return gson.toJson(obj);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public HashMap<String, Object> strJsonParser(String str) throws ParseException{
+		JSONParser parser = new JSONParser();
+		return (HashMap<String, Object>) parser.parse(str);
+	} 
 	
 	public JsonArray parsingHsArr(JsonObject beforeObj, String key) {
 		return beforeObj.getAsJsonArray(key); //hs에서 key의 value값 꺼내기 - arr버전

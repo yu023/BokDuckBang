@@ -121,6 +121,23 @@
         </foreach>
   </insert>
   
+  <insert id="insertRoomReserve" parameterType="java.util.HashMap">
+  		insert into room_reserve
+  		(reserve_member_email
+  		,reserve_member_name
+  		,reserve_member_phone
+  		,reserve_room_author_email
+  		,reserve_room_number
+  		,reserve_room_title)
+  		values
+  		(#{member_email}
+  		,#{member_name}
+  		,#{member_phone}
+  		,#{room_author_email}
+  		,#{room_number}
+  		,#{room_title})
+  </insert>
+  
   <update id="addRoomHits" parameterType="int">
 		UPDATE room SET room_hits = room_hits + 1 WHERE room_number = #{value};
   </update>
@@ -195,6 +212,19 @@
 		WHERE room_number = #{value};
   </update>
   
+  <update id="updateMyReserveRoom" parameterType="java.util.HashMap">
+	UPDATE room_reserve
+	SET 
+	<if test="val">
+		reserve_status = 'Y'
+	</if>
+	<if test="!val">
+		reserve_status = 'N'
+	</if>
+	where
+	reserve_num = #{reserve_num}
+  </update>
+  
   <select id="dupChkRoom" parameterType="bokduckbang.room.Room" resultType="object">
 	select room_number
 	from room
@@ -221,6 +251,54 @@
 	        AND room_total_floor = #{room_total_floor}
 	    </if>
 	</trim>
+  </select>
+  
+  <select id="selectMyReserveDetail" parameterType="java.util.HashMap" resultType="bokduckbang.room.RoomReserve">
+	select *
+	from room_reserve
+	<trim prefix="WHERE">
+		<if test="member_email != ''">
+			reserve_member_email = #{member_email}
+	    </if>
+		<if test="member_name != ''">
+			AND reserve_member_name = #{member_name}
+	    </if>
+		<if test="member_phone != ''">
+			AND reserve_member_phone = #{member_phone}
+	    </if>
+	  	<if test="room_author_email != ''">
+	        AND reserve_room_author_email = #{room_author_email}
+	    </if>
+	  	<if test="room_number != ''">
+	        AND reserve_room_number = #{room_number}
+	    </if>
+	  	<if test="room_title != ''">
+	        AND reserve_room_title = #{room_title}
+	    </if>
+	</trim>
+  </select>
+  
+  <select id="selectMyReserveStatus" parameterType="java.util.HashMap" resultType="bokduckbang.room.RoomReserve">
+	select *
+	from room_reserve
+	where reserve_num = #{reserve_num}
+  </select>
+  
+  <select id="selectMyReserveRoom" parameterType="java.util.HashMap" resultType="bokduckbang.room.RoomReserve">
+	select *
+	from room_reserve
+	where
+	<if test="member_type == 1">
+		reserve_member_email = #{member_email}
+		<if test="null != room_number">
+			AND 
+			reserve_room_number = #{room_number}
+		</if>
+	</if>
+	<if test="member_type == 0">
+		reserve_room_author_email = #{member_email}
+	</if>
+	order by reserve_create_date desc;
   </select>
   
   <select id="selectOneRoomImg" parameterType="int" resultType="bokduckbang.room.RoomImg">

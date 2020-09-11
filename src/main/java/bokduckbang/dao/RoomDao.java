@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import bokduckbang.room.Room;
 import bokduckbang.room.RoomImg;
+import bokduckbang.room.RoomReserve;
 import bokduckbang.room.MinMax;
 
 @Repository
@@ -26,9 +27,29 @@ public class RoomDao {
 	public Integer insertRoomImg(HashMap<String, Object> map) {
 		return sqlSession.insert("RoomMapper.insertRoomImg", map);
 	}
-
+	
+	public Integer insertRoomReserve(HashMap<String,Object> roomReserveMap) {
+		return sqlSession.insert("RoomMapper.insertRoomReserve", roomReserveMap);
+	}
+	
 	public void updateRoom(Room room) {
 		sqlSession.update("RoomMapper.roomUpdate", room);
+	}
+
+	public Integer updateMyReserveRoom(HashMap<String, Object> map) {
+		return sqlSession.update("RoomMapper.updateMyReserveRoom", map);
+	}
+	
+	public RoomReserve selectMyReserveDetail(HashMap<String, Object> map) {
+		return sqlSession.selectOne("RoomMapper.selectMyReserveDetail", map);
+	}
+	
+	public RoomReserve selectMyReserveStatus(HashMap<String, Object> map) {
+		return sqlSession.selectOne("RoomMapper.selectMyReserveStatus", map);
+	}
+	
+	public List<RoomReserve> selectMyReserveRoom(HashMap<String, Object> map) {
+		return sqlSession.selectList("RoomMapper.selectMyReserveRoom", map);
 	}
 	
 	public List<Integer> dupChkRoom(Room room) {

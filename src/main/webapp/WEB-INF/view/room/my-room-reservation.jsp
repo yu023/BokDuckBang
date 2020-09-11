@@ -1,76 +1,71 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:include page="../include/header.jsp" flush="false" />
 <link rel="stylesheet" href="assets/css/search-room-style.css" />
-
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <div class="sub-container">
 	<!--visual start -->
 	<section class="">
 		<div class="container">
-			<table class="common-table w100">
-				<colgroup>
-					<col width="150px"/>
-					<col width="*"/>
-					<col width="250px"/>
-				</colgroup>
-				<thead>
-					<tr>
-						<th>예약 번호</th>
-						<th>예약내용</th>
-						<th>예약상태</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<th>3</th>
-						<td>
-							<a class="tal block pl10" href="${root}/room-detail?num=374">
-								김아무개 / 01012345678 / 신명스카이뷰 16평형 전세권설정 저렴한 전세매물 입주협의가능
-							</a>
-						</td>
-						<td>
-							<div class="button">
-								<a class="keybg">예약 승인</a>
-								<a class="bgGray">예약 거절</a>
-							</div>
-						</td>
-					</tr>
-					<tr>
-						<th>2</th>
-						<td>
-							<a class="tal block pl10" href="${root}/room-detail?num=374">
-								김아무개 / 01012345678 / O역삼동O쓰리룸 방3화2 거실대O신축급O특급매물O전세자금 Cㅐ출 가능O
-							</a>
-						</td>
-						<td>
-							<div class="button">
-								<a class="keybg">예약 승인</a>
-								<a class="bgGray">예약 거절</a>
-							</div>
-						</td>
-					</tr>
-					<tr>
-						<th>1</th>
-						<td>
-							<a class="tal block pl10" href="${root}/room-detail?num=374">
-								김아무개 / 01012345678 / 갓성비 1.5룸 선릉역 도보3분 보면 나갑니다
-							</a>
-						</td>
-						<td>
-							<div class="button">
-								<a class="keybg">예약 승인</a>
-								<a class="bgGray">예약 거절</a>
-							</div>
-						</td>
-					</tr>
-				</tbody>
+			<table id="reserveTable" class="common-table w100">
+				<template v-if="callReserve">
+					<colgroup>
+						<col width="*"/>
+						<col width="250px"/>
+					</colgroup>
+					<thead>
+						<tr>
+							<th>예약내용</th>
+							<th>예약상태</th>
+						</tr>
+					</thead>
+					<tbody>
+					<tr v-for="(reserve, index) in reserves.slice().reverse()">
+							<td>
+								<a class="tal block pl10" v-bind:href="reserve.room_href">
+									{{index}} / {{reserve.member_name}} /  {{reserve.member_phone}} /  {{reserve.room_title}}
+								</a>
+							</td>
+							<td>
+								<div class="button answer">
+									<a v-if="reserve.reserve_status == 'YN'" v-on:click="sayYes(reserve.reserve_num, reserve.member_email)" class="keybg">예약 승인</a>
+									<a v-if="reserve.reserve_status == 'YN'" v-on:click="sayNo(reserve.reserve_num, reserve.member_email)" class="bgGray">예약 거절</a>
+									<a v-if="reserve.reserve_status == 'Y'" class="keybg cursorDefault">예약 완료</a>
+									<a v-if="reserve.reserve_status == 'N'" class="bgGray cursorDefault">예약 거절</a>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</template>
+				<template v-else>
+					<colgroup>
+						<col width="*"/>
+					</colgroup>
+					<thead>
+						<tr>
+							<th>예약내용</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>예약 회원이 없습니다.</td>
+						</tr>
+					</tbody>
+				</template>
 			</table>
 		</div>
 		<!--/.container-->
 	</section>
 	<!--visual end -->
 </div>
-
-
-<script src="assets/js/room/myRoomList.js"></script>
+<div id="reserveBtn" class="none"></div>
+<script>
+	var room_number;
+	var memberChk = "${sessionScope.member.member_type}" ;
+</script>
+		
+<c:if test="${sessionScope.member.member_type ne null}">
+	<script src="assets/js/webSocket/webSocket.js"></script>
+</c:if>
 <jsp:include page="../include/footer.jsp" flush="false" />

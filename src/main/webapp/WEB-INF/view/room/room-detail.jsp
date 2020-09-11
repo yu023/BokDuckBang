@@ -7,10 +7,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
 <%@ page import="bokduckbang.member.Member" %>
 <%@ page import="bokduckbang.member.MemberLessee" %>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <% 
 	Member member = (Member)session.getAttribute("member");
 	if(null != member && member.getMember_type().equals("1")){
 		MemberLessee memberLessee = (MemberLessee) session.getAttribute("memberInfo");
+		request.setAttribute("member_phone", memberLessee.getMember_phone());
+		request.setAttribute("member_name", memberLessee.getMember_name());
 		request.setAttribute("room_lat", memberLessee.getMember_dest_lat());
 		request.setAttribute("room_lng", memberLessee.getMember_dest_lng());
 	}
@@ -50,13 +53,13 @@
 					
 				</div><!--/.visual-->
 			</div><!--/.top-->
-			
 			<div class="room-detail-bottom count-box">
-				<c:if test="${sessionScope.member.member_type eq 1}">
-					<div class="mt40 mb25 tar button">
-						<a class="tac keybg" onclick="javascript:reserveRoom(${room.room_number});">방 예약하기</a>
-					</div>
-				</c:if>
+				<div id="reserveBtn" class="mt40 mb25 tar button">
+					<a v-if="status == ''" class="tac keybg" v-on:click="reserveRoom('${sessionScope.member.member_email}','${member_name}',${member_phone},'${room.room_author_email}',${room.room_number},'${room.room_title}');">예약하기</a>
+					<a v-if="status == 'YN'" class="tac bgGray" >예약대기중</a>
+					<a v-if="status == 'Y'" class="tac bgGray" >예약완료</a>
+					<a v-if="status == 'N'" class="tac bgGray" >예약거절</a>
+				</div>
 				<div class="detail-script table common-div-padding">
 					<dl class="tableCell col-md-7 fn vm">
 						<dt>${room.room_title}</dt>
@@ -221,25 +224,30 @@
 
 	</section>
 </div>
-
+<div id="reserveTable" class="none"></div>
 
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 <script
       src="https://maps.googleapis.com/maps/api/js?libraries=geometry&callback=initMap&key=${key}"
       defer
 ></script>
-
 <script>
 	var myLatlng = {lat: ${room.room_lat}, lng: ${room.room_lng}};
 	var companyLatlng = {lat: 37.516349, lng: 127.019931};
 	var memberChk = "${sessionScope.member.member_type}" ;
-	var room_lat, room_lng;
+	var room_lat, room_lng, room_number;
 	if(memberChk == 1){
 		room_lat = "${room_lat}";
 		room_lng = "${room_lng}";
 	}
 </script>
 
+<c:if test="${sessionScope.member.member_type ne null}">
+	<script>
+		room_number = '${room.room_number}';
+	</script>
+	<script src="assets/js/webSocket/webSocket.js"></script>
+</c:if>
 <script src="assets/js/map/detail-room-map.js"></script>
 <script src="assets/js/room/room.js"></script>
 

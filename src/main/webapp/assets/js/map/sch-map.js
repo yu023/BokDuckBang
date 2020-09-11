@@ -28,7 +28,9 @@ function initMap(){
 	if(room_lat != "" && room_lng != ""){
 		myLatlng.lat = parseFloat(room_lat);
 		myLatlng.lng = parseFloat(room_lng);
+		console.log(myLatlng)
 	}
+	
 	
 	var markers;
 	var markerCluster;
