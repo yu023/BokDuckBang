@@ -9,6 +9,7 @@
 
 [@BokDuckBang 프레젠테이션](https://drive.google.com/file/d/14FnYIx5zug9r544cVBpjtA6hRa9qhlRp/view?usp=sharing)
 [@BokDuckBang 기획서](https://drive.google.com/file/d/1BRoAc1zCcn4lyLdS3CQ5mWrhgNsVw7Lv/view?usp=sharing)
+[@BokDuckBang 웹호스팅](http://dbkm0203.cafe24.com/)
 
 ## 개발 환경
 
