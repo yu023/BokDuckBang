@@ -38,7 +38,7 @@ function initMap(){
       strokeWeight: 2,
       fillColor: "#FF0000",
       fillOpacity: 0.1,
-      map,
+      map: map,
       center: myLatlng,
       radius: ( dist * 1000 ) / 2
     });

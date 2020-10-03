@@ -23,7 +23,7 @@
 		<!-- testemonial Start -->
 		<section class="room-detail-box">
 			<div class="room-detail-top">
-				<c:if test="${sessionScope.member ne null}">
+				<c:if test="${sessionScope.member ne null and sessionScope.member.member_type eq 1}">
 					<c:if test="${roomLikes}">
 						<div class="like">LIKE <i class="fas fa-heart"></i></div>
 					</c:if>
@@ -55,11 +55,16 @@
 			</div><!--/.top-->
 			<div class="room-detail-bottom count-box">
 				<div id="reserveBtn" class="mt40 mb25 tar button">
-					<a v-if="status == ''" class="tac keybg" v-on:click="reserveRoom('${sessionScope.member.member_email}','${member_name}',${member_phone},'${room.room_author_email}',${room.room_number},'${room.room_title}');">예약하기</a>
-					<a v-if="status == 'YN'" class="tac bgGray" >예약대기중</a>
-					<a v-if="status == 'Y'" class="tac bgGray" >예약완료</a>
-					<a v-if="status == 'N'" class="tac bgGray" >예약거절</a>
+					<a v-if="status == '' && callReserveBtn == true && '판매중지' != '${roomStatus}'" class="tac keybg" v-on:click="reserveRoom('${sessionScope.member.member_email}','${member_name}','${member_phone}','${room.room_author_email}','${room.room_number}','${room.room_title}');">예약하기</a>
+					<a v-if="status == 'YN' && '판매중지' != '${roomStatus}'" class="tac bgGray cursorDefault" >예약대기중</a>
+					<a v-if="status == 'Y' && '판매중지' != '${roomStatus}'" class="tac bgGray cursorDefault" >예약완료</a>
+					<a v-if="status == 'N' && '판매중지' != '${roomStatus}'" class="tac bgGray cursorDefault" >예약거절</a>
 				</div>
+				<c:if test="${null != roomStatus}">
+					<div class="button tar">
+						<button class="tac bgGray cursorDefault" >${roomStatus}</button>
+					</div>
+				</c:if>
 				<div class="detail-script table common-div-padding">
 					<dl class="tableCell col-md-7 fn vm">
 						<dt>${room.room_title}</dt>
@@ -238,16 +243,13 @@
 	var room_lat, room_lng, room_number;
 	if(memberChk == 1){
 		room_lat = "${room_lat}";
-		room_lng = "${room_lng}";
+		companyLatlng.lat = "${room_lat}";
+		companyLatlng.lng = "${room_lng}";
 	}
+	room_number = '${room.room_number}';
 </script>
 
-<c:if test="${sessionScope.member.member_type ne null}">
-	<script>
-		room_number = '${room.room_number}';
-	</script>
-	<script src="assets/js/webSocket/webSocket.js"></script>
-</c:if>
+<script src="assets/js/webSocket/webSocket.js"></script>
 <script src="assets/js/map/detail-room-map.js"></script>
 <script src="assets/js/room/room.js"></script>
 

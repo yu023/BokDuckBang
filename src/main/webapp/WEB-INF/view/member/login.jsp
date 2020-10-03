@@ -17,7 +17,7 @@
 						<label for="member_email">이메일</label>
 					</th>
 					<td>
-						<input class="input-default" <c:if test="${sessionScope.member eq null}">value="${sessionScope.email}"</c:if> <c:if test="${sessionScope.member ne null}">value="${sessionScope.member.member_email}" readonly</c:if> type="text" name="member_email" required="required" />
+						<input class="input-default" <c:if test="${sessionScope.member eq null and email ne null}">value="${email}"</c:if> <c:if test="${sessionScope.member ne null}">value="${sessionScope.member.member_email}" readonly</c:if> type="text" name="member_email" required="required" />
 					</td>
 				</tr>
 				<tr>

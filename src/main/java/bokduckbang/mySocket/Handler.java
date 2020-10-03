@@ -1,18 +1,14 @@
 package bokduckbang.mySocket;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
-
-import com.google.gson.Gson;
 
 import bokduckbang.member.Member;
 import bokduckbang.room.RoomReserve;
@@ -35,7 +31,6 @@ public class Handler extends BinaryWebSocketHandler {
 		HashMap<String, WebSocketSession> sessionMap = new HashMap<String, WebSocketSession>();
 		sessionMap.put(member.getMember_email(), session);
 		sessionList.add(sessionMap);
-		System.out.println("myLIst : " + sessionList);
 	}
 	
 	@Override
@@ -43,7 +38,6 @@ public class Handler extends BinaryWebSocketHandler {
 		Member member = memberService.returnMember(session);
 		String msgStr = message.getPayload();
 		
-		System.out.println("msgStr : " + msgStr);
 		try {
 			
 			if(msgStr.contains(",")) {
@@ -106,7 +100,6 @@ public class Handler extends BinaryWebSocketHandler {
 				sessionList.remove(i);
 			}
 		}
-		System.out.println("after : " + sessionList);
 	}
 	
 }

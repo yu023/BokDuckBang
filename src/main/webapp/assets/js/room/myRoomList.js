@@ -36,6 +36,10 @@ function makeList(map){
 	var roomList = {};
 	var title, keyNum;
 	
+	if(0 == result.length){
+		$("#room-list").append("<li>등록한 방이 없습니다.</li>");
+	}	
+	
 	imgSearchCancelLoops:
 	for(var i = 0; i < result.length; i++){
 		

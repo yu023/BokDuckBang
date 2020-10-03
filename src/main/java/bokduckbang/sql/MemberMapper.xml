@@ -228,4 +228,28 @@
   	   WHERE likes_member_id = #{likes_member_id}
 	   and likes_room = #{likes_room}
   </update>
+  <delete id="deleteLessee" parameterType="string">
+  		DELETE m1, m2, m3, m4
+		FROM member AS m1
+		left JOIN member_lessee AS m2 ON m1.member_email = m2.member_email
+		left JOIN room_likes AS m3 ON m1.member_email = m3.likes_member_id
+		left JOIN room_reserve AS m4 ON m1.member_email = m4.reserve_member_email
+		WHERE m1.member_email = #{value}
+  </delete>
+  <delete id="deleteLessor" parameterType="string">
+  		DELETE r1, r2, r3, r4
+		FROM member AS r1
+		left JOIN member_lessor AS r2 ON r1.member_email = r2.member_email
+		left JOIN room AS r3 ON r1.member_email = r3.room_author_email
+		left JOIN room_reserve AS r4 ON r1.member_email = r4.reserve_room_author_email
+		WHERE r1.member_email = #{value}
+  </delete>
+  <delete id="deleteLessorRoomImg" parameterType="java.util.HashMap">
+  		DELETE FROM room_img
+		where
+		<foreach collection="roomReserveList" item="item" separator=" OR ">
+		   room_img_number = #{item}
+		 </foreach>
+  </delete>
+  
 </mapper>

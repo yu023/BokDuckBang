@@ -6,23 +6,31 @@ $(document).ready(function(){
 
 function initSet(){
 	client = new WebSocket('ws://localhost:8080/BokDuckBang/room-reserve/websocket');
+	reserveBtn.callReserveBtn = false;
+	reserveTable.callReserve = false;
 	if('' != room_number && '' != memberChk && '1' == memberChk){
 		var str = 'lessee:' + room_number;
-		client.onopen = () => client.send(str);
+		client.onopen = function (event) {
+		  client.send('str');
+		};
+		reserveBtn.callReserveBtn = true;
 		webSocketProceed('lessee');
 	}else{
 		$("#").addClass("none");
 	}
 	if('' != memberChk && '0' == memberChk){
-		client.onopen = () => client.send('lessor');
+		client.onopen = function (event) {
+		  client.send('lessor');
+		};
 		webSocketProceed('lessor');
 	}
 }
 
 var reserveBtn = new Vue({
   el: '#reserveBtn',
-  data() {
+  data: function() {
     return {
+      callReserveBtn: false,
       status: ""
     }
   },
@@ -37,7 +45,7 @@ var reserveBtn = new Vue({
 
 var reserveTable = new Vue({
   el: '#reserveTable',
-  data() {
+  data: function() {
     return {
       callReserve: false,
       reserves: []
@@ -74,7 +82,6 @@ function webSocketProceed(type){
 	    		var myJson = result[0];
 	    		reserveBtnStatus(myJson);
 	    		for(var i = 0; i < reserveTable.reserves.length; i ++){
-	    		console.log(reserveTable.reserves[i].reserve_num)
 	    			if(reserveTable.reserves[i].reserve_num == myJson.reserve_num){
 	    				reserveTable.reserves[i].reserve_status = myJson.reserve_status;
 	    			}
@@ -131,7 +138,6 @@ function pushReserveTable(result){
     	reserveTable.callReserve = true;
     	reserveTable.reserves.push(reserveTableData);
 	}
-	console.log(reserveTable.reserves)
 }
 
 

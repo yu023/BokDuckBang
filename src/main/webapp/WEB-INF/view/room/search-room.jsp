@@ -9,11 +9,12 @@
 		MemberLessee memberLessee = (MemberLessee) session.getAttribute("memberInfo");
 		request.setAttribute("room_lat", memberLessee.getMember_dest_lat());
 		request.setAttribute("room_lng", memberLessee.getMember_dest_lng());
+		request.setAttribute("member_like_room_type", memberLessee.getMember_like_room_type());
 	}
 %>
 <jsp:include page="../include/header.jsp" flush="false" />
 <link rel="stylesheet" href="assets/css/search-room-style.css" />
-
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <div class="sub-container">
 	<jsp:include page="../include/search-header.jsp" flush="false" />
 	<!--visual start -->
@@ -40,8 +41,37 @@
 					<div class="w100" id="map">
 					</div>
 				</div>
-				<div class="col-md-5">
+				<div class="col-md-5" id="room-list-wrapper" style="overflow-y:hidden;">
 					<ul class="row" id="room-list">
+						<li v-for="list in myList" v-bind:class="'col-md-6 room' + list.room_number">
+							<div class="list-li-wrapper">
+								<a class="block" v-bind:href="list.room_link">
+									<div v-bind:style="{ 'background-image': 'url(' + list.img + ')' }" class="thumb"></div>
+								</a>
+								<div class="li-wrap">
+									<div class="table">
+										<p class="tableCell">
+											<a class="block" v-bind:href="'room-detail?num=' + list.room_number">
+												{{list.room_title}}
+											</a>
+										</p>
+										<span v-if="list.room_favorit == true" class="tableCell tar">
+											<i onclick="like(this)" class="fas fa-heart"></i>
+										</span>
+										<span v-if="list.room_favorit == false" class="tableCell tar">
+											<i onclick="like(this)" class="far fa-heart"></i>
+										</span>
+									</div>
+									<p>
+										<a class="block" v-bind:href="'room-detail?num=' + list.room_number">
+											<span v-for="keyword in list.room_keytitle">
+												{{keyword}}
+											</span>
+										</a>
+									</p>
+								</div>
+							</div>
+						</li>
 						
 					</ul>
 				</div>
@@ -54,11 +84,13 @@
 <script>
 	var memberChk = "${sessionScope.member.member_type}" ;
 	var room_lat = "",
-		room_lng = "";
+		room_lng = "",
+		member_like_room_type = "";
 
 	if(memberChk == 1){
 		room_lat = "${room_lat}";
 		room_lng = "${room_lng}";
+		member_like_room_type = "${member_like_room_type}";
 	}
 </script>
 

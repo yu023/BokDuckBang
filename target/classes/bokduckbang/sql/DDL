@@ -1,13 +1,12 @@
-
-
 CREATE TABLE `member` (
+  `member_number` int NOT NULL AUTO_INCREMENT,
   `member_email` varchar(100) NOT NULL,
+  `member_password` varchar(100) NOT NULL,
   `member_type` tinyint NOT NULL,
   `member_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`member_email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='member 통합 테이블'
-
-
+  PRIMARY KEY (`member_email`),
+  UNIQUE KEY `member_number_UNIQUE` (`member_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8 COMMENT='member 통합 테이블'
 
 CREATE TABLE `member_lessee` (
   `member_email` varchar(100) NOT NULL,
@@ -16,13 +15,12 @@ CREATE TABLE `member_lessee` (
   `member_name` varchar(100) NOT NULL,
   `member_like_room_type` varchar(45) DEFAULT NULL,
   `member_dest_loc` varchar(200) DEFAULT NULL,
-  `member_like_area` varchar(200) DEFAULT NULL,
+  `member_dest_lat` double DEFAULT NULL,
+  `member_dest_lng` double DEFAULT NULL,
   `member_like_room_num` varchar(200) DEFAULT NULL,
-  KEY `member_email` (`member_email`),
-  CONSTRAINT `member_lessee_ibfk_1` FOREIGN KEY (`member_email`) REFERENCES `member` (`member_email`)
+  PRIMARY KEY (`member_email`),
+  KEY `member_email` (`member_email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='임차인 회원 테이블'
-
-
 
 CREATE TABLE `member_lessor` (
   `member_email` varchar(100) NOT NULL,
@@ -33,24 +31,9 @@ CREATE TABLE `member_lessor` (
   `member_business_phn_num` char(11) NOT NULL,
   `member_purchase_goods` tinyint NOT NULL DEFAULT '0',
   `member_amount` varchar(45) DEFAULT NULL,
-  KEY `member_email` (`member_email`),
-  CONSTRAINT `member_lessor_ibfk_1` FOREIGN KEY (`member_email`) REFERENCES `member` (`member_email`)
+  PRIMARY KEY (`member_email`),
+  KEY `member_email` (`member_email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='임대인 회원 테이블'
-
-
-
-CREATE TABLE `member_payment` (
-  `payment_number` int NOT NULL AUTO_INCREMENT,
-  `payment_member_email` varchar(45) NOT NULL,
-  `payment_goods_name` varchar(45) NOT NULL,
-  `payment_amount` int NOT NULL,
-  `payment_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`payment_number`),
-  KEY `payment_member_email` (`payment_member_email`),
-  CONSTRAINT `member_payment_ibfk_1` FOREIGN KEY (`payment_member_email`) REFERENCES `member` (`member_email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='임차인 프리미엄 상품 결제 테이블'
-
-
 
 CREATE TABLE `room` (
   `room_number` int NOT NULL AUTO_INCREMENT,
@@ -60,9 +43,11 @@ CREATE TABLE `room` (
   `room_complex_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `room_dong` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `room_ho` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `room_lat_lng` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `room_title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `room_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `room_lat_lng` geometry NOT NULL,
+  `room_lat` double DEFAULT NULL,
+  `room_lng` double DEFAULT NULL,
+  `room_title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `room_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `room_money_lease` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `room_money_deposit` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `room_money_monthly_rent` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
@@ -78,22 +63,43 @@ CREATE TABLE `room` (
   `room_heating` char(6) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '개별',
   `room_balcony` char(3) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '유',
   `room_loan` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '가능',
-  `room_move_in_date` char(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '즉시입주',
+  `room_move_in_date` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '즉시입주',
   `room_option` varchar(300) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `room_author_email` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `room_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `room_status` tinyint DEFAULT '1',
   `room_likes` int DEFAULT '0',
-  `room_ hits` int DEFAULT '0',
+  `room_hits` int DEFAULT '0',
+  `room_deposit_num` int DEFAULT NULL,
+  `room_lease_num` int DEFAULT NULL,
+  `room_monthly_rent_num` int DEFAULT NULL,
   PRIMARY KEY (`room_number`),
-  KEY `room_author_email` (`room_author_email`),
-  CONSTRAINT `room_ibfk_1` FOREIGN KEY (`room_author_email`) REFERENCES `member` (`member_email`)
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='방 매물 테이블'
-
+  KEY `room_author_email` (`room_author_email`)
+) ENGINE=InnoDB AUTO_INCREMENT=617 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='방 매물 테이블'
 
 CREATE TABLE `room_img` (
-  `room_type` int NOT NULL,
-  `room_img_url` longtext NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='방 매물 사진 테이블'
+  `room_img_number` int NOT NULL,
+  `room_img` longblob NOT NULL,
+  KEY `room_img_number` (`room_img_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
+CREATE TABLE `room_likes` (
+  `likes_member_id` varchar(100) NOT NULL,
+  `likes_room` int NOT NULL,
+  `member_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `idx_likes_num` (`likes_member_id`,`likes_room`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='member 좋아요 테이블'
 
+CREATE TABLE `room_reserve` (
+  `reserve_num` int NOT NULL AUTO_INCREMENT,
+  `reserve_member_email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reserve_member_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reserve_member_phone` char(11) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reserve_room_author_email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reserve_room_number` int NOT NULL,
+  `reserve_room_title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reserve_status` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'YN',
+  `reserve_create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`reserve_num`),
+  UNIQUE KEY `idx_email_number` (`reserve_member_email`,`reserve_room_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='예약폼'

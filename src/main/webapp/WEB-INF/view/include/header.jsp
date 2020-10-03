@@ -20,7 +20,7 @@
 		<title>BokDuckBang</title>
 
 		<!-- favicon img -->
-		<link rel="shortcut icon" type="image/icon" href="assets/logo/favicon.png"/>
+		<link rel="shortcut icon" type="image/icon" href="assets/logo/favicon12.png"/>
 
 		<!--font-awesome.min.css-->
 		<link rel="stylesheet" href="assets/css/font-awesome.min.css" />

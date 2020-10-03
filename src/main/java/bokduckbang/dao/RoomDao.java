@@ -44,6 +44,11 @@ public class RoomDao {
 		return sqlSession.selectOne("RoomMapper.selectMyReserveDetail", map);
 	}
 	
+	public List<Integer> selectMyReserveDetailList(HashMap<String, Object> map) {
+		System.out.println("map : " + map);
+		return sqlSession.selectList("RoomMapper.selectMyReserveDetailList", map);
+	}
+	
 	public RoomReserve selectMyReserveStatus(HashMap<String, Object> map) {
 		return sqlSession.selectOne("RoomMapper.selectMyReserveStatus", map);
 	}

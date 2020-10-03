@@ -109,3 +109,10 @@ $("input[name='member_business_license']").on('keydown keypress keyup paste inpu
 		$(this).val(myTxt + "-");
 	};
 })
+
+function withdrawal(){
+	var result = confirm("탈퇴하시겠습니까?");
+	if(result){
+	    window.location = "withdrawal";
+	}
+}

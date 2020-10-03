@@ -12,7 +12,6 @@ $(document).ready(function(){
 	
 	myFileList.imgBoolean = "true";
 	myPostAddr();
-	console.log(myFileList);
 })
 
 function checkRoom(){
@@ -21,7 +20,6 @@ function checkRoom(){
 			myRoom().done(function(roomNum){
 				myFileList.roomNumber = parseInt(roomNum);
 	       	    myRoomImg();
-	       	    window.location.href = "my-room-list"
 			})
 		}else{
 			myRoomUpdate().done(function(roomNum){
@@ -29,9 +27,9 @@ function checkRoom(){
 				if(myFileList.files != "undefined"){
 		       	    myRoomImg();
 				}
-	       	    window.location.href = "my-room-list"
 			})
 		}
+		return false;
 	}else{
 		alert("모든 항목을 작성하여 주십시오.");
 		return false;
@@ -45,7 +43,6 @@ var myFileList = {};
 function myFiles() {
 
 	  var files   = document.querySelector('input[type=file]').files;
-	  
 	  function readAndPreview(file) {
 	    // `file.name` 형태의 확장자 규칙에 주의하세요
 	    if ( /\.(jpe?g|png|gif)$/i.test(file.name) ) {
@@ -57,7 +54,6 @@ function myFiles() {
 	        image.title = file.name;
 	        image.src = this.result;
 	        fileList.push(this.result);
-	        console.log(typeof this.result);
 	        $('#preview').append("<p class='mt05'>" + file.name + "</p>");
 	      }, false);
 	      reader.readAsDataURL(file);
@@ -75,8 +71,6 @@ function myFiles() {
 	  }else{
 	  	myFileList.imgBoolean = "true";
 	  }
-	  
-	  console.log(myFileList);
 }
 
 $("input[name='room_selling_type']").on("click",function(){
@@ -113,6 +107,13 @@ function edit(){
 		alert("글 내용을 작성하세요");
 		return false;
 	}
+	
+	var rsc = $("input[name='room_service_charge']").val();
+	if('' != rsc){
+		$("input[name='room_service_charge']").val("없음");
+	}else{
+		$("input[name='room_service_charge']").val(rsc + "만 원");
+	}
 }
 
 function myPostAddr(){
@@ -146,20 +147,18 @@ function myRoom(){
 }
 
 function myRoomImg(){
-	console.log(myFileList);
     $.ajax({
        url: 'add-my-room-img',
        method:'post',
        data: JSON.stringify(myFileList),
        contentType : 'application/json',
        success: function(result){  
-       	   console.log("성공");
+       	   window.location.href = "my-room-list";
        },
 	   error:function(request,status,error){
 	    	console.log("code = "+ request.status + " message = " + request.responseText + " error = " + error);
 	   }
     });
-    return false;
 }
 
 $("input.pay_input").change(function(){

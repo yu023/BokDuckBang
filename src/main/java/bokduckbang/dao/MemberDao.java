@@ -82,4 +82,14 @@ public class MemberDao {
 	public List<Integer> getLikes(String memberEmail) {
 		return sqlSession.selectList("MemberMapper.getLikes" , memberEmail);
 	}
+	
+	public Integer deleteLessee(String email) {
+		return sqlSession.delete("MemberMapper.deleteLessee", email);
+	}
+	
+	public Integer deleteLessor(HashMap<String, Object> map) {
+		sqlSession.delete("MemberMapper.deleteLessorRoomImg",map);
+		return sqlSession.delete("MemberMapper.deleteLessor", map.get("room_author_email"));
+	}
+	
 }

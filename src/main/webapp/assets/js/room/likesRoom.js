@@ -43,6 +43,15 @@ function addLikes(elem){
 		getLikesList();
 	})
 }
+		
+var roomList = new Vue({
+  el: '#room-list',
+  data: function() {
+    return {
+      myList: []
+    }
+  }
+})
 
 function makeList(result){
 	
@@ -54,36 +63,51 @@ function makeList(result){
 	var title;
 	
 	for(var i = 0; i < result.length; i++){
-		var imgUrlStr = result[i].room_img_url;
-		var imgUrlArr = imgUrlStr.split(",");
-		
-		if(result[i].room_selling_type == '월세'){
-			title = result[i].room_money_deposit + " / " + result[i]. room_money_monthly_rent;
-		}else if(result[i].room_selling_type == '전세'){
-			title = result[i].room_money_lease;
-		}else{
-			title = "기타";
+		var myJson = result[i];
+		var room = {
+			room_number : myJson.room_number,
+			room_favorit : true
 		}
-
-		var keywords = result[i].room_keywords;
-		var keywordArr = keywords.split(",");
-		var keytitle = "";
-
-		for(var j = 0; j < 5; j++){
 		
+		if(myJson.hasOwnProperty('favorite')){
+			room.room_favorit = myJson.favorite;
+		}
+		
+		if(myJson.hasOwnProperty('room_img')){
+			room.img = myJson.room_img;
+		}else{
+			var image = myJson.room_img_url;
+			if(-1 != image.indexOf(",")){
+				var images = image.split(",");
+				room.img = "https://d1774jszgerdmk.cloudfront.net/1024/" + images[0];
+			}else{
+				room.img = "https://d1774jszgerdmk.cloudfront.net/1024/" + image;
+			}
+		}
+		
+		if(myJson.room_selling_type == '월세'){
+			room.room_title = myJson.room_money_deposit + " / " + myJson.room_money_monthly_rent;
+		}else if(myJson.room_selling_type == '전세'){
+			room.room_title = myJson.room_money_lease;
+		}
+		
+		var keywords = myJson.room_keywords;
+		var keywordArr = keywords.split(",");
+		var keytitle = [];
+		
+		for(var j = 0; j < 5; j++){
 			var key = keywordArr[j];
-			
 			if(typeof key != "undefined"){
 				var idx = key.indexOf("\/");
 				if(idx != -1){
 					key[j].replace("\/", " · ")
 				}
-				keytitle += "<span>#" + key + "</span> ";
+				keytitle.push("#" + key);
 			}
 		}
 		
-		$("#room-list").append('<li class="col-md-3 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="fas fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
-	
+		room.room_keytitle = keytitle;
+		roomList.myList.push(room);
 	}
 	
 	

@@ -28,7 +28,6 @@ function stopSellingMyRoom(number){
 		contentType : 'application/json'
 	}).done(function(room){
 		if(null != room){
-			console.log(room.room_status)
 			if(room.room_status == 0){
 				$(".sellingType span").text("판매중지").addClass("colorred");
 				$(".sellingBtn").text("방 판매재개하기");

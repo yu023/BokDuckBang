@@ -63,10 +63,6 @@
 						<p class="mt10 price-range-result"><span class="min"></span> ~ <span class="max"></span></p>
 					</div>
 				</div>
-				<p>
-					<input name="fee" id="fee" type="checkbox"/>
-					<label for="fee">관리비를 포함하시려면 체크해주세요</label>
-				</p>
 			</div>
 		</div>
 		<div id="deposit-modal2" class="abs deposit-modal">
@@ -117,10 +113,6 @@
 						<p class="mt10 price-range-result"><span class="min"></span> ~ <span class="max"></span></p>
 					</div>
 				</div>
-				<p>
-					<input name="fee" id="fee" type="checkbox"/>
-					<label for="fee">관리비를 포함하시려면 체크해주세요</label>
-				</p>
 			</div>
 		</div>
 		<div class="search-container inblock fr">
@@ -172,7 +164,6 @@ function showModal(elem){
 	const offsetX = rect.left + window.scrollX;
 	const offsetY = rect.top + window.scrollY + $(elem).height() + 7;
 	var modal = elem.getAttribute('data-modal');
-	console.log(modal);
 	$("#"+modal).find(".deposit-modal-inner").css({left: offsetX, top: offsetY});
 	$("#"+modal).show();
 }

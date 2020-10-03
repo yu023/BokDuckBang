@@ -5,8 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.json.simple.parser.ParseException;
@@ -22,7 +20,7 @@ import bokduckbang.member.CheckMember;
 import bokduckbang.member.MemberLessee;
 import bokduckbang.member.MemberLessor;
 import bokduckbang.room.Room;
-import bokduckbang.room.RoomReserve;
+import bokduckbang.room.RoomImg;
 import bokduckbang.service.CommonService;
 import bokduckbang.service.MemberService;
 import bokduckbang.service.RoomService;
@@ -60,6 +58,11 @@ public class MainController {
 		return map;
 	}
 	
+	
+	@RequestMapping("/test")
+	public String test() {
+		return "room/search-room-list";
+	}
 	
 	@RequestMapping("/")
 	public String index() {
@@ -101,9 +104,14 @@ public class MainController {
 		}
 	}
 	
+	@RequestMapping("/withdrawal")
+	public String withdrawal(Model model) throws ParseException {
+		return memberService.withdrawal(session, roomService, model);
+	}
+	
 	@RequestMapping("/set-room-likes")
 	@ResponseBody
-	public HashMap<String, Object> setRoomLikes() {
+	public HashMap<String, Object> setRoomLikes() throws UnsupportedEncodingException, ParseException {
 		return roomService.setLikesRoom(memberService.getLikeList(session));
 	}
 	
@@ -131,8 +139,8 @@ public class MainController {
 	}
 	
 	@RequestMapping("/loginProcess")
-	public String loginProcess(CheckMember checkMember) {
-		return memberService.returnLoginUri(session, checkMember);
+	public String loginProcess(CheckMember checkMember, Model model) {
+		return memberService.returnLoginUri(session, checkMember, model);
 	}
 	
 	@RequestMapping("/findIdPw")
@@ -161,11 +169,16 @@ public class MainController {
 		}
 	}
 	
-	@RequestMapping("/my-webSocket-list")
+	@RequestMapping("/get-my-room-image")
 	@ResponseBody
-	public String myWebSocketList(HttpSession session, @RequestBody HashMap<String,Object> map) throws ParseException {
-//		return roomService.checkReserveDetailRoom(session, map);
-		return "메롱";
+	public List<RoomImg> getMyRoomImage(@RequestParam Integer roomNumber) throws ParseException, UnsupportedEncodingException {
+		return roomService.returnRoomImg(roomNumber);
+	}
+	
+	@RequestMapping("/get-my-room-image1")
+	@ResponseBody
+	public List<HashMap<String, Object>> getMyRoomImage1(@RequestBody String myMapStr) throws ParseException, UnsupportedEncodingException {
+		return roomService.returnMakeList(myMapStr);
 	}
 	
 	@RequestMapping("/update-my-room")
@@ -291,6 +304,7 @@ public class MainController {
 	@RequestMapping("/filter")
 	@ResponseBody
 	public HashMap<String, Object> filter(@RequestBody HashMap<String, Object> filter) throws ParseException {
+		System.out.println(filter);
 		return roomService.filter(memberService, session, filter);
 	}
 	

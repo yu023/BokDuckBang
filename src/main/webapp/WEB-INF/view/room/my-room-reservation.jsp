@@ -24,7 +24,7 @@
 					<tr v-for="(reserve, index) in reserves.slice().reverse()">
 							<td>
 								<a class="tal block pl10" v-bind:href="reserve.room_href">
-									{{index}} / {{reserve.member_name}} /  {{reserve.member_phone}} /  {{reserve.room_title}}
+									{{reserve.member_name}} /  {{reserve.member_phone}} /  {{reserve.room_title}}
 								</a>
 							</td>
 							<td>

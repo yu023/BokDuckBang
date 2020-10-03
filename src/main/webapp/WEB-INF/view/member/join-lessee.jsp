@@ -96,6 +96,9 @@
 					<input class="fr btn-default submitBtn" type="submit" value="회원정보수정"/>
 				</c:if>
 			</div>
+			<c:if test="${sessionScope.member ne null}">
+				<p class="tar mt20 mb20"><a style="font-size: 0.9em; color: #bbb;" href="javascript:withdrawal()">회원탈퇴</a></p>
+			</c:if>
 		</form>
 	</section>
 	<!--visual end -->

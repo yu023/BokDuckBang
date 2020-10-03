@@ -278,6 +278,12 @@
 	</trim>
   </select>
   
+  <select id="selectMyReserveDetailList" parameterType="java.util.HashMap" resultType="int">
+	select room_number
+	from room
+	where room_author_email = #{room_author_email}
+  </select>
+  
   <select id="selectMyReserveStatus" parameterType="java.util.HashMap" resultType="bokduckbang.room.RoomReserve">
 	select *
 	from room_reserve

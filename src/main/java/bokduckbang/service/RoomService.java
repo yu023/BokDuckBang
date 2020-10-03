@@ -3,11 +3,8 @@ package bokduckbang.service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -94,11 +91,9 @@ public class RoomService {
 		Boolean result = null;
 		if(map.containsKey("files")) {
 			Integer i = Double.valueOf(map.get("roomNumber").toString()).intValue();
-			System.out.println(i);
 			roomDao.deleteMyRoomImg(i);
 			result = insertMyRoomImg(map);
 		}
-		System.out.println(result);
 		return result;
 	}
 	
@@ -138,6 +133,10 @@ public class RoomService {
 		}
 	}
 	
+	public List<Integer> selectMyReserveDetailList(HashMap<String, Object> map) throws ParseException {
+		return roomDao.selectMyReserveDetailList(map);
+	}
+	
 	public List<RoomReserve> checkReserveDetailRoom(HttpSession session, HashMap<String, Object> myWebSocketList) {
 		Member member = (Member) session.getAttribute("member");
 		myWebSocketList.put("member_type", member.getMember_type());
@@ -165,6 +164,81 @@ public class RoomService {
 		List<RoomImg> roomImgList = roomDao.selectOneRoomImg(roomNumber);
 		model.addAttribute("roomImgList", returnRoomImgStr(roomImgList));
 		return model;
+	}
+	
+	public List<RoomImg> returnRoomImg(Integer roomNumber) throws UnsupportedEncodingException {
+		List<RoomImg> roomImg = roomDao.selectOneRoomImg(roomNumber);
+		if(null != roomImg) {
+			for(RoomImg ri : roomImg) {
+				ri.setRoom_img_str(ri.getRoom_img());
+			}
+		}
+		return roomImg;
+	}
+	
+	public List<HashMap<String, Object>> returnMakeList(String myMapStr) throws ParseException, UnsupportedEncodingException {
+	
+		String[] myMapArr= null;
+	
+		if(myMapStr.contains("undefined")) {
+			myMapStr = myMapStr.replace("undefined", "");
+			myMapStr = myMapStr.substring(2,myMapStr.length()-2);
+		}else {
+			myMapStr = myMapStr.substring(1,myMapStr.length()-1);
+			myMapArr = myMapStr.split("\\]\\[");
+		}
+		
+		if(null != myMapArr) {
+			myMapStr = myMapArr[0].substring(1, myMapArr[0].length()-1);
+			
+		}
+		String[] MyRoomInfo = myMapStr.split("\\},\\{");
+		String[] myNum = null;
+		
+		if(null != myMapArr && 1 < myMapArr.length) {
+			if(myMapArr[1].contains(",")) {
+				myNum = myMapArr[1].split(",");
+			}else {
+				myNum = new String[1];
+				myNum[0] = myMapArr[1];
+			}
+		}
+		
+		List<Room> myRoomList = new ArrayList<Room>();
+		List<HashMap<String, Object>> myRoomMapList = new ArrayList<HashMap<String, Object>>();
+		
+		for(int i = 0; i < MyRoomInfo.length; i++) {
+			HashMap<String, Object> myJson = strJsonParser("{" + MyRoomInfo[i] + "}");
+			myRoomMapList.add(myJson);
+			
+			Room room = gson.fromJson(gson.toJson(myJson), Room.class);
+			myRoomList.add(room);
+		}
+
+		List<RoomImg> rl = roomDao.selectRoomImg(myRoomList);
+		
+		for(int i = 0; i < myRoomList.size(); i++) {
+			if(null != myNum) {
+				for(int j = 0; j < myNum.length; j++) {
+					if(myNum[j].equals(myRoomList.get(i).getRoom_number().toString())) {
+						myRoomMapList.get(i).put("favorite", true);
+					}
+				}
+			}
+			
+			if(null != rl) {
+				for(int j = 0; j < rl.size(); j++) {
+					if(myRoomList.get(i).getRoom_number().equals(rl.get(j).getRoom_img_number())) {
+						rl.get(j).setRoom_img_str(rl.get(j).getRoom_img());
+						String roomImgStr = rl.get(j).getRoom_img_str();
+						myRoomMapList.get(i).put("room_img", roomImgStr);
+					}
+				}
+			}
+		}
+		
+		return myRoomMapList;
+			
 	}
 	
 	public List<String> returnRoomImgStr(List<RoomImg> roomImgList) throws UnsupportedEncodingException{
@@ -210,12 +284,37 @@ public class RoomService {
 		}
 	}
 	
-	public HashMap<String, Object> setLikesRoom(List<Integer> list) {
+	public HashMap<String, Object> setLikesRoom(List<Integer> list) throws ParseException, UnsupportedEncodingException {
 		HashMap<String, Object> map = new HashMap<String, Object>();
+		List<Room> imgNullList = new ArrayList<Room>();
+		List<HashMap<String, Object>> returnRoomMap = new ArrayList<HashMap<String, Object>>();
+		
 		if(list.size() != 0) {
+			
 			map.put("likesRoom", true);
 			map.put("room_number", list);
-			map.put("roomList", roomDao.selectRoom(map));
+			
+			List<Room> roomList = roomDao.selectRoom(map);
+			
+			for(Room room : roomList) {
+				if(null == room.getRoom_img_url()) {
+					imgNullList.add(room);
+				}
+			}
+			
+			List<RoomImg> roomImgList = roomDao.selectRoomImg(imgNullList);
+
+			for(Room room : roomList) {
+				HashMap<String, Object> roomMap = strJsonParser(ObjJsonParser(room));
+				for(RoomImg roomImg : roomImgList) {
+					if(roomImg.getRoom_img_number() == room.getRoom_number()) {
+						roomMap.put("room_img", roomImg.getRoom_img());
+					}
+				}
+				returnRoomMap.add(roomMap);
+			}
+			
+			map.put("roomList", returnRoomMap);
 		}else {
 			map.put("likesRoom", false);
 		}
@@ -231,8 +330,10 @@ public class RoomService {
 			List<Room> room = roomDao.selectRoom(map);
 			map.put("roomList", room);
 			List<RoomImg> rl = roomDao.selectRoomImg(room);
-			for(int i = 0; i < rl.size(); i++) {
-				rl.get(i).setRoom_img_str(rl.get(i).getRoom_img());
+			if(null != rl) {
+				for(int i = 0; i < rl.size(); i++) {
+					rl.get(i).setRoom_img_str(rl.get(i).getRoom_img());
+				}
 			}
 			map.put("roomImgList", rl);
 		}else {
@@ -245,25 +346,28 @@ public class RoomService {
 	public HashMap<String, Object> schRoomList(HashMap<String, Object> keyword) {
 		String ky = keyword.get("keyword").toString();
 		String myUrl = "";
-		try {
-			myUrl = "https://maps.googleapis.com/maps/api/place/textsearch/json?"
-					+ "query=" + URLEncoder.encode(ky, "UTF-8") 
-					+ "&key=" + keyword.get("key");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		
-		JsonObject je = openJsonObject(myUrl, false);
-		JsonArray resultArr = parsingHsArr(je, "results");
-
-		JsonObject result = (JsonObject) resultArr.get(0);
-		JsonObject geometry = (JsonObject) result.get("geometry");
-		
-		JsonObject location = (JsonObject) geometry.get("location");
 		HashMap<String, Object> map = new HashMap<String, Object>();
-		map.put("centerLat", location.get("lat").getAsDouble());
-		map.put("centerLng", location.get("lng").getAsDouble());
-		map.put("distance", 5.0);
+
+		if(!ky.equals("")) {
+			try {
+				myUrl = "https://maps.googleapis.com/maps/api/place/textsearch/json?"
+						+ "query=" + URLEncoder.encode(ky, "UTF-8") 
+						+ "&key=" + keyword.get("key");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+			
+			JsonObject je = openJsonObject(myUrl, false);
+			JsonArray resultArr = parsingHsArr(je, "results");
+			
+			JsonObject result = (JsonObject) resultArr.get(0);
+			JsonObject geometry = (JsonObject) result.get("geometry");
+			
+			JsonObject location = (JsonObject) geometry.get("location");
+			map.put("centerLat", location.get("lat").getAsDouble());
+			map.put("centerLng", location.get("lng").getAsDouble());
+			map.put("distance", 5.0);
+		}
 
 		return map;
 	}
@@ -466,7 +570,7 @@ public class RoomService {
 		}else if(sellStr.equals("select2")) {
 			rangeHs.put("select2", true);
 		}
-		
+		System.out.println("ragneHs : " + rangeHs);
 		return rangeHs;
 	}
 
@@ -481,7 +585,7 @@ public class RoomService {
 		
 		
 		HashMap<String, Object> fastRoot = new HashMap<String, Object>();
-		System.out.println(myUrl);
+		
 		JsonObject je = openJsonObject(myUrl, true);
 		JsonObject routesHs = parsingArrHs(parsingHsArr(je, "routes"), 0); //3번 legs. polyline 있는 hashmap
 		
@@ -588,6 +692,11 @@ public class RoomService {
 		}
 		model.addAttribute("roomKeyword", roomKeyword(room));
 		model.addAttribute("roomOption", roomOption(room));
+		String status = room.getRoom_status();
+		if(status.equals("0")) {
+			model.addAttribute("roomStatus","판매중지");
+		}
+		
 		
 		return model;
 	}

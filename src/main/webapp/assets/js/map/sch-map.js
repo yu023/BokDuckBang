@@ -11,14 +11,13 @@ function initMap(){
 	$("#sellingType li").eq(0).find("input[type='checkbox']").prop("checked",true);
 	$("#range-box li .deposit").hide();
 	
-	//필터 거리순 활성화
-	$("#range-box li input[name='range']").eq(0).prop("checked",true);
 
 	//전체 레이아웃 높이 구성
 	var height = $(window).height();
-	var header = $('.search-header-area').height() + 120;
+	var header = $('.search-header-area').height() + 160;
 	$("#map").css({height : height - header});
-	$("#room-list").css({height : height - header});
+	$("#room-list-wrapper").css({height : height - header});
+	$(".map-wrapper").css({height : height - header});
 	
 
 	//map data setting
@@ -28,7 +27,6 @@ function initMap(){
 	if(room_lat != "" && room_lng != ""){
 		myLatlng.lat = parseFloat(room_lat);
 		myLatlng.lng = parseFloat(room_lng);
-		console.log(myLatlng)
 	}
 	
 	
@@ -38,7 +36,7 @@ function initMap(){
 	var image2 = 'assets/images/common/selectedMarker2.svg';
 			
 	var id = "select1";
-	var range = ["range1"];
+	var range = [];
 		
 	var KeywordArr;
 	var keywordMsg;
@@ -66,7 +64,7 @@ function initMap(){
       strokeWeight: 2,
       fillColor: "#FF0000",
       fillOpacity: 0.1,
-      map,
+      map : map,
       center: myLatlng,
       radius: ( dist * 1000 ) / 2
     });
@@ -78,7 +76,7 @@ function initMap(){
 	  });
 
 	var roomFilters = {
-			room_selling_type : $("#sellingType li input[type='checkbox']:checked").prop("id"),
+			room_selling_type : member_like_room_type,
 		  	centerLat : marker.getPosition().lat(),
 			centerLng : marker.getPosition().lng(),
 		  	distance : dist,
@@ -86,6 +84,7 @@ function initMap(){
 			range : range
 	  }
 
+	//주소창에 필터링 키워드들 저장
 	history.pushState(roomFilters, "BokDuckBang", uriPathname + "?" + encodeURIComponent(JSON.stringify(roomFilters)));
 	
 	//get 에 parameter 있으면 해당 조건 적용하여 검색
@@ -93,8 +92,8 @@ function initMap(){
 		var decodeURI = decodeURIComponent(uriParam);
 		decodeURI = decodeURI.substring(1,decodeURI.length);
 		roomFilters = JSON.parse(decodeURI);
-		myLatlng.lat = roomFilters.centerLat;
-		myLatlng.lng = roomFilters.centerLng;
+		myLatlng.lat = parseFloat(roomFilters.centerLat);
+		myLatlng.lng = parseFloat(roomFilters.centerLng);
 		reSetting(myLatlng);
 		var keywordStr = roomFilters.keyword;
 		if(keywordStr != "" && typeof keywordStr != "undefined" && keywordStr != null){
@@ -107,8 +106,20 @@ function initMap(){
 		for(var i = 0; i < roomFilters.range.length; i++){
 			$("#"+roomFilters.range[i]).prop("checked", true);
 		}
+		if("" != roomFilters.room_selling_type){
+			$("input[name='select']").prop("checked", false);
+			$("#" + roomFilters.room_selling_type).prop("checked", true);
+		}else{
+			roomFilters.room_selling_type = "select1";
+		}
 		$("#seachInput").val(roomFilters.region);
 	}else{
+		if("" != roomFilters.room_selling_type){
+			$("input[name='select']").prop("checked", false);
+			$("#" + roomFilters.room_selling_type).prop("checked", true);
+		}else{
+			roomFilters.room_selling_type = "select1";
+		}
 		//첫 화면 param 없을 경우 function 뿌려주기
 		keyFunctionAjax(roomFilters);
 	}
@@ -268,72 +279,96 @@ function initMap(){
 		markers = markerCluster.markers_;
 		
 	} 
-	
 		  
 	/*****************************
 		make list
 	************************************/
+		
+	var roomList = new Vue({
+	  el: '#room-list',
+	  data: function() {
+	    return {
+	      myList: []
+	    }
+	  }
+	})
 
 	//목적지와 가까운 거리순으로 방 목록 생성
 	function makeList(result,likeList){
-		
 		$("#room-list *").remove();
+		roomList.myList = [];
 		enterPrevNum = -1;
 	    clickPrevNum = -1;
 
 		var locations = [];
 		var title;
 		
-		likeCatchLoops:
-		for(var i = 0; i < result.length; i++){
-			var imgUrlStr = result[i].room_img_url;
-			var imgUrlArr;
-			if(null != imgUrlStr && -1 != imgUrlStr.search(",") != -1){
-				imgUrlArr = imgUrlStr.split(",");
-			}
-			
-			if(result[i].room_selling_type == '월세'){
-				title = result[i].room_money_deposit + " / " + result[i]. room_money_monthly_rent;
-			}else if(result[i].room_selling_type == '전세'){
-				title = result[i].room_money_lease;
-			}else{
-				title = "기타";
-			}
-
-			var keywords = result[i].room_keywords;
-			var keywordArr = keywords.split(",");
-			var keytitle = "";
-
-			for(var j = 0; j < 5; j++){
-			
-				var key = keywordArr[j];
-				
-				if(typeof key != "undefined"){
-					var idx = key.indexOf("\/");
-					if(idx != -1){
-						key[j].replace("\/", " · ")
-					}
-					keytitle += "<span>#" + key + "</span> ";
-				}
-			}
-			
-			if(memberChk == ""){
-				$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
-			}else{
-				for(var j = 0; j < likeList.length; j++){
-					if(likeList[j] == result[i].room_number){
-						$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="fas fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
-						continue likeCatchLoops;
-					}
-				}
-				$("#room-list").append('<li class="col-md-6 room' + result[i].room_number + '"><div class="list-li-wrapper"><a class="block" href="room-detail?num=' + result[i].room_number + '"><div style="background-image: url(https://d1774jszgerdmk.cloudfront.net/1024/'+ imgUrlArr[0] + ')" class="thumb"></div></a><div class="li-wrap"><div class="table"><p class="tableCell"><a class="block" href="room-detail?num=' + result[i].room_number + '">'+ title + '</a></p><span class="tableCell tar"><i onclick="like(this)" class="far fa-heart"></i></span></div><p><a class="block" href="room-detail?num=' + result[i].room_number + '">' + keytitle + '</a></p></div></div></li>');
-			}
-		}
+		var a = JSON.stringify(result);
+		var b = JSON.stringify(likeList);
+		var c = a + b;
 		
+		$.ajax({
+			url : 'get-my-room-image1',
+			method : 'post',
+			data: c,
+			contentType: 'application/json'
+		}).done(function(result){
+
+			for(var i = 0; i < result.length; i++){
+				var myJson = result[i];
+				var room = {
+					room_number : myJson.room_number,
+					room_favorit : 'none'
+				}
+				
+				if(memberChk == "1"){
+					room.room_favorit = false
+				}
+				
+				if(myJson.hasOwnProperty('favorite')){
+					room.room_favorit = myJson.favorite;
+				}
+				
+				if(myJson.hasOwnProperty('room_img')){
+					room.img = myJson.room_img;
+				}else{
+					var image = myJson.room_img_url;
+					if(-1 != image.indexOf(",")){
+						var images = image.split(",");
+						room.img = "https://d1774jszgerdmk.cloudfront.net/1024/" + images[0];
+					}else{
+						room.img = "https://d1774jszgerdmk.cloudfront.net/1024/" + image;
+					}
+				}
+				
+				if(myJson.room_selling_type == '월세'){
+					room.room_title = myJson.room_money_deposit + " / " + myJson.room_money_monthly_rent;
+				}else if(myJson.room_selling_type == '전세'){
+					room.room_title = myJson.room_money_lease;
+				}
+				
+				var keywords = myJson.room_keywords;
+				var keywordArr = keywords.split(",");
+				var keytitle = [];
+				
+				for(var j = 0; j < 5; j++){
+					var key = keywordArr[j];
+					if(typeof key != "undefined"){
+						var idx = key.indexOf("\/");
+						if(idx != -1){
+							key[j].replace("\/", " · ")
+						}
+						keytitle.push("#" + key);
+					}
+				}
+				
+				room.room_keytitle = keytitle;
+				roomList.myList.push(room);
+			}
+		})
 		
 		
 	}
-	
 			  
 	/*****************************
 		list mouse enter event
@@ -348,7 +383,7 @@ function initMap(){
 	function enterEvent(){
 	
 		$("#room-list li").mouseenter(function(){
-	
+		
 			var href = $(this).find("a").attr("href");
 			var hrefArr;
 			if("undefined" != typeof href){
@@ -612,16 +647,14 @@ function initMap(){
 	
 	function modalBox(){
 		
-		var mySelltype = roomFilters.room_selling_type;
+		var mySelltype;
 		
-		if(mySelltype == "all"){
-			$("#select1").prop("checked",true);
-			$("#select2").prop("checked",true);
+		if(member_like_room_type != ""){
+			mySelltype = member_like_room_type;
 		}else{
-			$("#select1").prop("checked",false);
-			$("#select2").prop("checked",false);
-			$("#"+mySelltype).prop("checked",true);
+			mySelltype = roomFilters.room_selling_type
 		}
+		
 		modalBoxSetting();
 	}
 	
@@ -718,6 +751,7 @@ function initMap(){
 		  });
 		  
 		});
+		
 
 		$(function () {
 		
@@ -753,13 +787,18 @@ function initMap(){
 				    modal.find('.price-range-result .min').text(minValue);
 					modal.find('.price-range-result .max').text(maxValue);
 
-					roomFilter(roomFilters);
 				}
+				
 			   }); //end slider-range
-		  
+			   
 		  modal.find('.min_price').val(minValue);
 		  modal.find('.max_price').val(maxValue);
 		
+			   
+		   modal.find('.slider-range').mouseup(function () {
+		   	    console.log(roomFilters)
+				roomFilter(roomFilters);
+		  });
 	   }); //end function
 	   
 	 }
@@ -800,7 +839,6 @@ function initMap(){
 	function roomFilter(roomFilters){
 		history.replaceState(roomFilters, "BokDuckBang", uriPathname + "?" +  encodeURIComponent(JSON.stringify(roomFilters)));
 		var filters = history.state;
-
 		$.ajax({
 			url : "filter",
 			method: "post",

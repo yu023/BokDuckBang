@@ -12,9 +12,11 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
 import javax.servlet.http.HttpSession;
 
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.socket.WebSocketSession;
 
 import bokduckbang.dao.MemberDao;
@@ -52,8 +54,10 @@ public class MemberService {
 		
 		getPoints = roomService.schRoomList(getPoints);
 		
-		lessee.setMember_dest_lat(Double.valueOf(getPoints.get("centerLat").toString()));
-		lessee.setMember_dest_lng(Double.valueOf(getPoints.get("centerLng").toString()));
+		if(getPoints.containsKey("centerLat")) {
+			lessee.setMember_dest_lat(Double.valueOf(getPoints.get("centerLat").toString()));
+			lessee.setMember_dest_lng(Double.valueOf(getPoints.get("centerLng").toString()));
+		}
 		
 		getPoints.put("member_email", lessee.getMember_email());
 		getPoints.put("member_type", lessee.getMember_type());
@@ -198,13 +202,14 @@ public class MemberService {
 		return map;
 	}
 	
-	public String returnLoginUri(HttpSession session, CheckMember checkMember) {
+	public String returnLoginUri(HttpSession session, CheckMember checkMember, Model model) {
 		String uri = "";
 		HashMap<String, Object> checker = loginProcess(checkMember);
 		if((Boolean)checker.get("result")) {
 			if(null != session  && null != session.getAttribute("member")) {
 				Member m = (Member) session.getAttribute("member");
 				session.setAttribute("memberInfo", getMyInfo(session));
+				model.addAttribute("email", checkMember.getMember_email());
 				if(m.getMember_type().equals("0")) {
 					uri = "member/join-lessor";
 				}else if(m.getMember_type().equals("1")) {
@@ -216,7 +221,7 @@ public class MemberService {
 				uri = "/index";
 			}
 		}else {
-			session.setAttribute("email", checkMember.getMember_email());
+			model.addAttribute("email", checkMember.getMember_email());
 			uri = "member/login";
 		}
 		return uri;
@@ -272,4 +277,37 @@ public class MemberService {
 		}
 		return list;
 	}
+	
+	public String withdrawal(HttpSession session, RoomService roomService, Model model) throws ParseException {
+		Member member = (Member) session.getAttribute("member");
+		if(null != member && null != member.getMember_type()) {
+			Integer result = 0;
+			if(member.getMember_type().equals("1")) {
+				result = memberDao.deleteLessee(member.getMember_email());
+			}else{
+				HashMap<String, Object> map = new HashMap<String, Object>();
+				map.put("room_author_email", member.getMember_email());
+				List<Integer> intList = roomService.selectMyReserveDetailList(map);
+				map.put("roomReserveList", intList);
+				if(0 < intList.size()) {
+					result = memberDao.deleteLessor(map);
+				}
+			}
+			if(0 < result) {
+				session.invalidate();
+				model.addAttribute("message", "탈퇴가 완료되었습니다.");
+				return "index";
+			}else {
+				session.invalidate();
+				model.addAttribute("message", "탈퇴 처리에 실패하였습니다. 관리자에게 문의하여 주십시오.");
+				return "member/login";
+			}
+		}else{
+			session.invalidate();
+			model.addAttribute("message", "재로그인하여 주십시오.");
+			return "member/login";
+		}
+	}
+	
+	
 }
