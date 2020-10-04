@@ -112,7 +112,11 @@ function initMap(){
 		}else{
 			roomFilters.room_selling_type = "select1";
 		}
-		$("#seachInput").val(roomFilters.region);
+		if(roomFilters.hasOwnProperty('region') && null != roomFilters.region){
+			if(roomFilters.region.hasOwnProperty('keyword') && null != roomFilters.region.keyword){
+				$("#seachInput").val(roomFilters.region.keyword);
+			}
+		}
 	}else{
 		if("" != roomFilters.room_selling_type){
 			$("input[name='select']").prop("checked", false);
@@ -296,21 +300,23 @@ function initMap(){
 	//목적지와 가까운 거리순으로 방 목록 생성
 	function makeList(result,likeList){
 		$("#room-list *").remove();
-		roomList.myList = [];
+		var myListLength = roomList.myList.length;
+		roomList.myList.splice(0,myListLength);
+
 		enterPrevNum = -1;
 	    clickPrevNum = -1;
 
 		var locations = [];
 		var title;
 		
-		var a = JSON.stringify(result);
-		var b = JSON.stringify(likeList);
-		var c = a + b;
+		var resultData = JSON.stringify(result);
+		var likeListData = JSON.stringify(likeList);
+		var totalResultData = resultData + likeListData;
 		
 		$.ajax({
 			url : 'get-my-room-image1',
 			method : 'post',
-			data: c,
+			data: totalResultData,
 			contentType: 'application/json'
 		}).done(function(result){
 
@@ -523,6 +529,7 @@ function initMap(){
 	
 	function schFunction(region){
 		roomFilters.region = region;
+		minMaxReset(roomFilters);
 		$.ajax({
 			url : 'search',
 			method : 'post',
@@ -655,6 +662,7 @@ function initMap(){
 			mySelltype = roomFilters.room_selling_type
 		}
 		
+		minMaxReset(roomFilters);
 		modalBoxSetting();
 	}
 	
@@ -674,7 +682,6 @@ function initMap(){
 	
 	
 	function minmax(roomFilters){
-	
 		roomFilters.type = 'none';
 	
 		$.ajax({
@@ -716,6 +723,7 @@ function initMap(){
 
 		var rename = ['min' + roomType, 'max' + roomType];
 		roomFilters.type = roomType;
+		minMaxReset(roomFilters);
 		
 		var setMin, setMax;
 					
@@ -794,14 +802,13 @@ function initMap(){
 		  modal.find('.min_price').val(minValue);
 		  modal.find('.max_price').val(maxValue);
 		
-			   
-		   modal.find('.slider-range').mouseup(function () {
-		   	    console.log(roomFilters)
-				roomFilter(roomFilters);
-		  });
 	   }); //end function
-	   
+		   
+	  
 	 }
+   $('.slider-range').mouseup(function () {
+		roomFilter(roomFilters);
+  });
 	
 	/*****************************
 		filter
