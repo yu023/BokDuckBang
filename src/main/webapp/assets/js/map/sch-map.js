@@ -96,6 +96,7 @@ function initMap(){
 		myLatlng.lng = parseFloat(roomFilters.centerLng);
 		reSetting(myLatlng);
 		var keywordStr = roomFilters.keyword;
+		
 		if(keywordStr != "" && typeof keywordStr != "undefined" && keywordStr != null){
 			$("#keywordInput").val(roomFilters.keyword);
 			keyFunctionAjax(roomFilters);
@@ -103,20 +104,30 @@ function initMap(){
 			keywordStr = "";
 			keyFunctionAjax(roomFilters);
 		}
+		
 		for(var i = 0; i < roomFilters.range.length; i++){
 			$("#"+roomFilters.range[i]).prop("checked", true);
 		}
+		
 		if("" != roomFilters.room_selling_type){
 			$("input[name='select']").prop("checked", false);
 			$("#" + roomFilters.room_selling_type).prop("checked", true);
 		}else{
 			roomFilters.room_selling_type = "select1";
 		}
+		
+		if(roomFilters.hasOwnProperty('distance')){
+			dist = roomFilters.distance;
+			$(".option-box .tab-box li input[value='" + dist + "']").prop("checked", true);
+			circleSetting(dist);
+		}
+		
 		if(roomFilters.hasOwnProperty('region') && null != roomFilters.region){
 			if(roomFilters.region.hasOwnProperty('keyword') && null != roomFilters.region.keyword){
 				$("#seachInput").val(roomFilters.region.keyword);
 			}
 		}
+		
 	}else{
 		if("" != roomFilters.room_selling_type){
 			$("input[name='select']").prop("checked", false);
@@ -152,16 +163,17 @@ function initMap(){
 
 	//탭 클릭시 반경과 클러스터 재검색
 	$(".option-box .tab-box li input[type='radio']").on("click",function(){
-	
 		dist = $(".option-box .tab-box li input[type='radio']:checked").val();
-
+		circleSetting(dist);
+	})
+	
+	function circleSetting(dist){
 		circle.setRadius(( dist * 1000 ) / 2);
 		minMaxReset(roomFilters);
 		roomFilters.distance = dist;
 		searchRoom(resetPointsRoomFilters(marker.getPosition()));
-		map.fitBounds (circle.getBounds());
-
-	})
+		map.fitBounds(circle.getBounds());
+	}
 
 	// Sets the map on all markers in the array.
 	function setMapOnAll(map) {
@@ -503,7 +515,7 @@ function initMap(){
 	
 	function setDelay(){
 		setTimeout(function() {
-		  	 map.fitBounds (circle.getBounds());
+		  	 map.fitBounds(circle.getBounds());
 			 map.setCenter(marker.getPosition());
 			 markers[roomNum].setIcon(null);
 			 markers[roomNum].setIcon(image);
@@ -844,6 +856,7 @@ function initMap(){
 	}
 
 	function roomFilter(roomFilters){
+	
 		history.replaceState(roomFilters, "BokDuckBang", uriPathname + "?" +  encodeURIComponent(JSON.stringify(roomFilters)));
 		var filters = history.state;
 		$.ajax({
